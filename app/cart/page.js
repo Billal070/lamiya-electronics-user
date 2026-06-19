@@ -65,7 +65,7 @@ export default function Cart() {
 
     if (orderError) {
       console.error(orderError);
-      alert('অর্ডার করার সময় ত্রুটি ঘটেছে। দয়া করে আবার চেষ্টা করুন।');
+      alert('অর্ডার এরর ডিটেইলস: ' + orderError.message + ' (কোড: ' + orderError.code + ')');
       setSubmitting(false);
       return;
     }
@@ -87,7 +87,7 @@ export default function Cart() {
 
     if (itemsError) {
       console.error(itemsError);
-      alert('অর্ডারের পণ্যগুলো সংরক্ষণ করতে সমস্যা হয়েছে।');
+      alert('পণ্যের ডাটাবেজ এরর: ' + itemsError.message);
       setSubmitting(false);
       return;
     }
