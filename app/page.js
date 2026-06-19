@@ -1,11 +1,11 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '../lib/supabase';
 import ProductCard from '../components/ProductCard';
 import { SlidersHorizontal, PackageOpen, BatteryCharging, ShieldCheck, HeartHandshake } from 'lucide-react';
 
-export default function Home() {
+function HomeContent() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -43,7 +43,6 @@ export default function Home() {
 
     const { data, error } = await query;
     if (!error && data) {
-      // Filter clientside to handle relation match correctly if needed
       let filteredData = data;
       if (selectedCategory) {
         filteredData = data.filter(p => p.categories && p.categories.slug === selectedCategory);
@@ -178,5 +177,13 @@ export default function Home() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="text-center py-20 font-bold text-gray-500">লোডিং হচ্ছে...</div>}>
+      <HomeContent />
+    </Suspense>
   );
 }
