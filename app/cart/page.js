@@ -1,12 +1,15 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCart } from '../../context/CartContext';
 import { supabase } from '../../lib/supabase';
-import { Trash2, ShieldCheck, BadgeCheck, PhoneCall, AlertCircle } from 'lucide-react';
+import { Trash2, ShieldCheck, BadgeCheck, UserCheck, Lock } from 'lucide-react';
 import Link from 'next/link';
 
 export default function Cart() {
   const { cart, updateQuantity, removeFromCart, clearCart } = useCart();
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -14,6 +17,18 @@ export default function Cart() {
   const [submitting, setSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [createdOrderId, setCreatedOrderId] = useState(null);
+
+  useEffect(() => {
+    // Check if customer is logged in
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setUser(user);
+        setEmail(user.email);
+        setName(user.user_metadata?.full_name || '');
+      }
+      setAuthLoading(false);
+    });
+  }, []);
 
   const subtotal = cart.reduce((total, item) => {
     const price = item.discount_price && item.discount_price < item.price ? item.discount_price : item.price;
@@ -25,7 +40,7 @@ export default function Cart() {
 
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
-    if (cart.length === 0) return;
+    if (cart.length === 0 || !user) return;
     if (!name || !phone || !address) {
       alert('দয়া করে নাম, মোবাইল নম্বর এবং সম্পূর্ণ ঠিকানা পূরণ করুন।');
       return;
@@ -38,7 +53,7 @@ export default function Cart() {
       .from('orders')
       .insert({
         customer_name: name,
-        email: email || 'no-email@lamiya.com',
+        email: email || user.email,
         phone: phone,
         shipping_address: address,
         total_amount: grandTotal,
@@ -85,7 +100,7 @@ export default function Cart() {
 
   if (orderSuccess) {
     return (
-      <div className="max-w-2xl mx-auto bg-white rounded-2xl p-8 border border-green-100 text-center shadow-sm space-y-6">
+      <div className="max-w-2xl mx-auto bg-white rounded-2xl p-8 border border-green-100 text-center shadow-sm space-y-6 my-10">
         <div className="flex justify-center">
           <div className="bg-green-100 p-4 rounded-full text-green-600">
             <BadgeCheck size={48} />
@@ -107,7 +122,7 @@ export default function Cart() {
 
   if (cart.length === 0) {
     return (
-      <div className="max-w-2xl mx-auto bg-white rounded-2xl p-12 border border-gray-100 text-center shadow-sm space-y-6">
+      <div className="max-w-2xl mx-auto bg-white rounded-2xl p-12 border border-gray-100 text-center shadow-sm space-y-6 my-10">
         <div className="flex justify-center text-gray-300">
           <Trash2 size={48} />
         </div>
@@ -177,9 +192,9 @@ export default function Cart() {
         </div>
       </div>
 
-      {/* Checkout Section */}
+      {/* Checkout or Login Form Section */}
       <div className="space-y-6">
-        {/* Price Breakdown */}
+        {/* Price Summary */}
         <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
           <h3 className="text-lg font-bold text-brandDark border-b pb-2">অর্ডার সারাংশ</h3>
           <div className="space-y-2 text-sm">
@@ -198,68 +213,98 @@ export default function Cart() {
           </div>
         </div>
 
-        {/* Form */}
-        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
-          <h3 className="text-lg font-bold text-brandDark border-b pb-2">ডেলিভারি তথ্য দিন</h3>
-          <form onSubmit={handlePlaceOrder} className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-gray-500 mb-1">আপনার নাম (আবশ্যক)</label>
-              <input
-                type="text"
-                required
-                placeholder="যেমন: মোঃ করিম"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brandBlue bg-gray-50"
-              />
+        {/* Dynamic Form Check */}
+        {authLoading ? (
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm text-center py-10 font-bold text-gray-400">
+            লোডিং হচ্ছে...
+          </div>
+        ) : user ? (
+          /* Checkout Form for Logged In User */
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+            <div className="flex items-center gap-2 border-b pb-2 text-green-600">
+              <UserCheck size={20} />
+              <h3 className="text-lg font-bold text-brandDark">ডেলিভারি তথ্য দিন</h3>
             </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-500 mb-1">মোবাইল নম্বর (আবশ্যক)</label>
-              <input
-                type="tel"
-                required
-                placeholder="যেমন: 017XXXXXXXX"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brandBlue bg-gray-50"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-500 mb-1">ইমেইল (ঐচ্ছিক)</label>
-              <input
-                type="email"
-                placeholder="যেমন: user@gmail.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brandBlue bg-gray-50"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-500 mb-1">ডেলিভারির সম্পূর্ণ ঠিকানা (আবশ্যক)</label>
-              <textarea
-                required
-                rows="3"
-                placeholder="যেমন: গ্রাম, ডাকঘর, থানা, জেলা"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brandBlue bg-gray-50"
-              />
-            </div>
+            <form onSubmit={handlePlaceOrder} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-1">আপনার নাম (আবশ্যক)</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="যেমন: মোঃ করিম"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brandBlue bg-gray-50"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-1">মোবাইল নম্বর (আবশ্যক)</label>
+                <input
+                  type="tel"
+                  required
+                  placeholder="যেমন: 017XXXXXXXX"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brandBlue bg-gray-50"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-1">ইমেইল (অ্যাকাউন্ট ইমেইল)</label>
+                <input
+                  type="email"
+                  disabled
+                  value={email}
+                  className="w-full border rounded-lg px-4 py-2 text-sm bg-gray-100 cursor-not-allowed text-gray-400"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-1">ডেলিভারির সম্পূর্ণ ঠিকানা (আবশ্যক)</label>
+                <textarea
+                  required
+                  rows="3"
+                  placeholder="যেমন: গ্রাম, ডাকঘর, থানা, জেলা"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brandBlue bg-gray-50"
+                />
+              </div>
 
-            <div className="bg-blue-50 border border-blue-100 p-3 rounded-lg flex gap-2 items-start text-xs text-blue-700 leading-relaxed">
-              <ShieldCheck className="shrink-0 text-brandBlue" size={16} />
-              <span>পেমেন্ট পদ্ধতি: <strong>ক্যাশ অন ডেলিভারি (পণ্য হাতে পেয়ে পেমেন্ট করুন)</strong>। আমরা খুব দ্রুত আপনার সাথে যোগাযোগ করব।</span>
-            </div>
+              <div className="bg-blue-50 border border-blue-100 p-3 rounded-lg flex gap-2 items-start text-xs text-blue-700 leading-relaxed">
+                <ShieldCheck className="shrink-0 text-brandBlue" size={16} />
+                <span>পেমেন্ট পদ্ধতি: <strong>ক্যাশ অন ডেলিভারি (পণ্য হাতে পেয়ে পেমেন্ট করুন)</strong>। আমরা খুব দ্রুত আপনার সাথে যোগাযোগ করব।</span>
+              </div>
 
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full py-3.5 bg-brandOrange text-brandBlue font-extrabold text-sm rounded-xl hover:bg-opacity-95 transition-all shadow shadow-brandOrange/20 uppercase"
-            >
-              {submitting ? 'অর্ডার হচ্ছে...' : 'অর্ডার নিশ্চিত করুন (৳' + grandTotal.toLocaleString() + ')'}
-            </button>
-          </form>
-        </div>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full py-3.5 bg-brandOrange text-brandBlue font-extrabold text-sm rounded-xl hover:bg-opacity-95 transition-all shadow shadow-brandOrange/20 uppercase"
+              >
+                {submitting ? 'অর্ডার হচ্ছে...' : 'অর্ডার নিশ্চিত করুন (৳' + grandTotal.toLocaleString() + ')'}
+              </button>
+            </form>
+          </div>
+        ) : (
+          /* Login Required Card */
+          <div className="bg-white p-6 rounded-xl border border-red-100 shadow-sm text-center space-y-4 py-8">
+            <div className="flex justify-center text-brandBlue">
+              <div className="bg-blue-50 p-4 rounded-full">
+                <Lock size={32} />
+              </div>
+            </div>
+            <h3 className="text-base font-extrabold text-brandDark">অর্ডার করতে লগইন করা আবশ্যক</h3>
+            <p className="text-xs text-gray-400 leading-relaxed">
+              অর্ডার করতে এবং অর্ডারটি পরবর্তী সময়ে ট্র্যাক করতে অনুগ্রহ করে আপনার কাস্টমার অ্যাকাউন্ট দিয়ে লগইন করুন।
+            </p>
+            <div className="pt-2">
+              <Link
+                href="/login"
+                className="block w-full py-3 bg-brandBlue text-white font-bold rounded-xl hover:bg-opacity-95 text-xs transition-all shadow"
+              >
+                লগইন / অ্যাকাউন্ট তৈরি করুন
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
