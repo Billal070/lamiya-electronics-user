@@ -1,14 +1,32 @@
 'use client';
 import Link from 'next/link';
-import { useState } from 'react';
-import { ShoppingCart, Search, Menu, Phone, Mail, Zap } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ShoppingCart, Search, Menu, Phone, Mail, Zap, User } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useRouter } from 'next/navigation';
+import { supabase } from '../lib/supabase';
 
 export default function Navbar() {
   const { cart } = useCart();
   const [searchQuery, setSearchQuery] = useState('');
+  const [user, setUser] = useState(null);
   const router = useRouter();
+
+  useEffect(() => {
+    // Fetch current user
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+    });
+
+    // Listen for auth state change
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -76,6 +94,18 @@ export default function Navbar() {
                 </span>
               )}
             </Link>
+
+            {user ? (
+              <Link href="/profile" className="flex items-center gap-1.5 text-sm font-bold text-brandBlue hover:text-brandOrange transition-colors border-l pl-4 border-gray-200">
+                <User size={20} />
+                <span className="hidden md:inline">{user.user_metadata?.full_name || 'প্রোফাইল'}</span>
+              </Link>
+            ) : (
+              <Link href="/login" className="flex items-center gap-1.5 text-sm font-bold text-brandBlue hover:text-brandOrange transition-colors border-l pl-4 border-gray-200">
+                <User size={20} />
+                <span>লগইন</span>
+              </Link>
+            )}
           </div>
         </div>
       </div>
