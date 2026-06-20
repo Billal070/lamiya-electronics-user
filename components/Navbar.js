@@ -15,7 +15,6 @@ export default function Navbar() {
   const router = useRouter();
   const { t } = useSettings();
 
-  // আপনার দেওয়া সঠিক সুনির্দিষ্ট লোগো লিঙ্ক
   const LOGO_IMAGE_URL = "https://gquovugjshkgvwfwdfti.supabase.co/storage/v1/object/public/lamiya-electronics/logo_full.png.png";
 
   useEffect(() => {
@@ -45,10 +44,10 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 bg-white border-b shadow-sm">
       <div className="max-w-7xl mx-auto px-4 py-3 md:py-4 flex flex-col gap-4">
         
-        {/* ROW 1: UTILITIES ROW (Perfect Absolute Centering) */}
+        {/* ROW 1: UTILITIES ROW */}
         <div className="relative flex items-center justify-between w-full select-none h-14 md:h-16">
           
-          {/* Left Side: Menu Button (বাম পাশে মেনু বাটন যুক্ত করা হয়েছে) */}
+          {/* Left Side: Menu Button */}
           <div className="relative z-20 flex items-center">
             <button 
               onClick={() => alert('মেনু ফিচারটি শীঘ্রই আসছে!')} 
@@ -59,14 +58,13 @@ export default function Navbar() {
             </button>
           </div>
 
-          {/* Absolute Centered Logo for BOTH Desktop and Mobile */}
+          {/* Absolute Centered Logo */}
           <div className="absolute left-1/2 -translate-x-1/2 z-10 flex items-center justify-center overflow-hidden">
             <Link href="/" className="flex items-center justify-center">
               {!imgError && LOGO_IMAGE_URL ? (
                 <img 
                   src={LOGO_IMAGE_URL} 
                   alt="Lamiya Electronics" 
-                  {/* সাইজ বাড়িয়ে মোবাইলে ১২০ পিক্সেল ও ডেস্কটপে ২০০ পিক্সেল করা হয়েছে */}
                   className="h-[120px] md:h-[200px] w-auto object-contain -my-8 md:-my-16"
                   onError={() => setImgError(true)}
                 />
@@ -76,7 +74,7 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Right Side: Cart & Profile (ডান পাশে কার্ট ও প্রোফাইল বাটন) */}
+          {/* Right Side: Cart & Profile */}
           <div className="relative z-20 flex items-center space-x-3.5">
             <Link href="/cart" className="relative p-1 text-brandBlue hover:text-brandOrange transition-all">
               <ShoppingCart size={24} />
@@ -87,20 +85,20 @@ export default function Navbar() {
               )}
             </Link>
 
-            {/* Desktop-only Profile */}
+            {/* Desktop Profile */}
             {user ? (
               <Link href="/profile" className="flex items-center gap-1.5 text-sm font-bold text-brandBlue hover:text-brandOrange transition-colors border-l pl-4 border-gray-200 hidden md:flex">
                 <User size={20} />
                 <span>{user.user_metadata?.full_name || t('nav_profile')}</span>
               </Link>
             ) : (
-              <Link href="/login" className="flex items-center gap-1.5 text-sm font-bold text-brandBlue hover:text-brandOrange transition-colors border-l pl-4 border-gray-200">
+              <Link href="/login" className="flex items-center gap-1.5 text-sm font-bold text-brandBlue hover:text-brandOrange transition-colors border-l pl-4 border-gray-200 hidden md:flex">
                 <User size={20} />
                 <span>{t('nav_login')}</span>
               </Link>
             )}
 
-            {/* Mobile-only Profile Icon */}
+            {/* Mobile Profile Icon */}
             <div className="md:hidden flex items-center">
               {user ? (
                 <Link href="/profile" className="text-brandBlue">
@@ -116,7 +114,7 @@ export default function Navbar() {
 
         </div>
 
-        {/* ROW 2: SEARCH BAR (নিচে একদম মাঝখানে সার্চ বার সেট করা হয়েছে) */}
+        {/* ROW 2: SEARCH BAR */}
         <div className="w-full flex justify-center">
           <form onSubmit={handleSearch} className="flex w-full max-w-lg border rounded-lg overflow-hidden bg-gray-50 focus-within:border-brandBlue transition-all shadow-sm">
             <input
