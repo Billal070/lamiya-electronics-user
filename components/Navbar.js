@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { ShoppingCart, Search, User, Menu } from 'lucide-react';
+import { ShoppingCart, Search, User, Menu, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabase';
@@ -12,12 +12,15 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState('');
   const [user, setUser] = useState(null);
   const [imgError, setImgError] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false); // মেনু ওপেন/ক্লোজ স্টেট
+  const [categories, setCategories] = useState([]); // ক্যাটাগরি তালিকা স্টেট
   const router = useRouter();
   const { t } = useSettings();
 
   const LOGO_IMAGE_URL = "https://gquovugjshkgvwfwdfti.supabase.co/storage/v1/object/public/lamiya-electronics/logo_full.png.png";
 
   useEffect(() => {
+    // ১. কাস্টমার লগইন চেক করা
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
     });
@@ -25,6 +28,16 @@ export default function Navbar() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
+
+    // ২. ডাটাবেজ থেকে রিয়েল-টাইম ক্যাটাগরি লোড করা (মেনুতে দেখানোর জন্য)
+    supabase.from('categories')
+      .select('*')
+      .order('name', { ascending: true })
+      .then(({ data, error }) => {
+        if (!error && data) {
+          setCategories(data);
+        }
+      });
 
     return () => subscription.unsubscribe();
   }, []);
@@ -47,10 +60,10 @@ export default function Navbar() {
         {/* ROW 1: UTILITIES ROW */}
         <div className="relative flex items-center justify-between w-full select-none h-14 md:h-16">
           
-          {/* Left Side: Menu Button */}
+          {/* Left Side: Dynamic Menu Button (ক্লিক করলে মেনু ওপেন হবে) */}
           <div className="relative z-20 flex items-center">
             <button 
-              onClick={() => alert('মেনু ফিচারটি শীঘ্রই আসছে!')} 
+              onClick={() => setIsMenuOpen(true)} 
               className="p-2 text-brandBlue hover:text-brandOrange hover:bg-gray-50 rounded-full transition-all flex items-center gap-1.5"
             >
               <Menu size={24} />
@@ -130,6 +143,108 @@ export default function Navbar() {
           </form>
         </div>
 
+      </div>
+
+      {/* ======================================================== */}
+      {/* DYNAMIC DRAWERS: SLIDING MENU SECTION WITH SMOOTH TRANSITIONS */}
+      {/* ======================================================== */}
+      
+      {/* 1. Backdrop Overlay (আবছা কালো ব্যাকগ্রাউন্ড) */}
+      <div 
+        className={`fixed inset-0 bg-black/40 z-50 transition-opacity duration-300 ${
+          isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={() => setIsMenuOpen(false)}
+      />
+
+      {/* 2. Sliding Drawer Panel (বাম পাশ থেকে স্মুথলি স্লাইড করে আসবে) */}
+      <div 
+        className={`fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-white dark:bg-slate-900 z-50 shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col ${
+          isMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        {/* Drawer Header */}
+        <div className="p-5 border-b dark:border-slate-800 flex justify-between items-center bg-gray-50 dark:bg-slate-950">
+          <div>
+            <h3 className="font-extrabold text-brandBlue dark:text-brandOrange text-base leading-none">LAMIYA</h3>
+            <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Navigation Menu</span>
+          </div>
+          <button 
+            onClick={() => setIsMenuOpen(false)}
+            className="p-1.5 bg-gray-200 dark:bg-slate-800 hover:bg-brandOrange hover:text-brandBlue rounded-full transition-all"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Drawer Scrollable Content */}
+        <div className="flex-grow overflow-y-auto p-5 space-y-6">
+          
+          {/* Section A: Quick Links */}
+          <div className="space-y-2">
+            <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 border-b pb-1 dark:border-slate-800">Quick Links</h4>
+            <Link 
+              href="/" 
+              onClick={() => setIsMenuOpen(false)}
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold text-brandDark dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+            >
+              {t('nav_home')}
+            </Link>
+            <Link 
+              href="/cart" 
+              onClick={() => setIsMenuOpen(false)}
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold text-brandDark dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+            >
+              {t('nav_cart')} ({totalItems})
+            </Link>
+            {user ? (
+              <Link 
+                href="/profile" 
+                onClick={() => setIsMenuOpen(false)}
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold text-brandDark dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                {t('nav_profile')}
+              </Link>
+            ) : (
+              <Link 
+                href="/login" 
+                onClick={() => setIsMenuOpen(false)}
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold text-brandDark dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                {t('nav_login')}
+              </Link>
+            )}
+          </div>
+
+          {/* Section B: Categories (ডাটাবেজ থেকে রিয়েল-টাইমে জেনারেট হবে) */}
+          <div className="space-y-2">
+            <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 border-b pb-1 dark:border-slate-800">{t('cat_title')}</h4>
+            <div className="flex flex-col space-y-1">
+              <Link 
+                href="/" 
+                onClick={() => setIsMenuOpen(false)}
+                className="px-3 py-2 rounded-lg text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                {t('all_products')}
+              </Link>
+              {categories.map((cat) => (
+                <Link
+                  key={cat.id}
+                  href={`/?category=${cat.slug}`}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="px-3 py-2 rounded-lg text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors capitalize"
+                >
+                  {cat.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Drawer Footer */}
+        <div className="p-5 border-t dark:border-slate-800 text-[10px] text-gray-400 text-center bg-gray-50 dark:bg-slate-950 select-none">
+          <p>&copy; {new Date().getFullYear()} Lamiya Electronics & IPS</p>
+        </div>
       </div>
     </header>
   );
