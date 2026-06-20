@@ -17,7 +17,7 @@ export default function Navbar() {
   const { t } = useSettings();
 
   // 🚨 নির্দেশ: নিচে থাকা ডাবল কোটেশনের ("") ভেতরে আপনার Supabase থেকে কপি করা লোগো লিঙ্কটি বসিয়ে দিন
-  const LOGO_IMAGE_URL = "https://gqogdffkmdsdygoxxeyv.supabase.co/storage/v1/object/public/lamiya-electronics/logo_full.png";
+  const LOGO_IMAGE_URL = "https://gquovugjshkgvwfwdfti.supabase.co/storage/v1/object/public/lamiya-electronics/logo_full.png.png";
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
