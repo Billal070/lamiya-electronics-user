@@ -16,7 +16,7 @@ export default function Navbar() {
   const router = useRouter();
   const { t } = useSettings();
 
-  // 🚨 নির্দেশ: নিচে থাকা ডাবল কোটেশনের ("") ভেতরে আপনার Supabase থেকে কপি করা লোগো লিঙ্কটি বসিয়ে দিন
+  // আপনার দেওয়া সঠিক সুনির্দিষ্ট লোগো লিঙ্ক
   const LOGO_IMAGE_URL = "https://gquovugjshkgvwfwdfti.supabase.co/storage/v1/object/public/lamiya-electronics/logo_full.png.png";
 
   useEffect(() => {
@@ -46,21 +46,22 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 bg-white dark:bg-slate-900 border-b dark:border-slate-800 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 py-3 md:py-4 flex flex-col md:flex-row justify-between items-center gap-3 md:gap-4">
         
-        {/* MOBILE HEADER (3-Column Layout: Center Logo) */}
-        <div className="grid grid-cols-3 items-center w-full md:hidden select-none">
-          {/* Column 1: Theme Toggle (Left) */}
-          <div className="justify-self-start">
+        {/* MOBILE HEADER (Absolute Centered Layout - Absolute Center) */}
+        <div className="relative flex items-center justify-between w-full md:hidden select-none">
+          
+          {/* Left: Theme Toggle */}
+          <div className="relative z-20">
             <ThemeToggle />
           </div>
 
-          {/* Column 2: Full PNG Logo in the absolute Middle (Size Increased to h-14) */}
-          <div className="justify-self-center py-1">
+          {/* Center: Centered Logo with expanded width constraint (Size: h-16) */}
+          <div className="absolute left-1/2 -translate-x-1/2 z-10 py-1">
             <Link href="/">
               {!imgError && LOGO_IMAGE_URL ? (
                 <img 
                   src={LOGO_IMAGE_URL} 
                   alt="Lamiya Electronics" 
-                  className="h-14 w-auto object-contain max-w-[150px]"
+                  className="h-16 w-auto object-contain"
                   onError={() => setImgError(true)}
                 />
               ) : (
@@ -69,8 +70,8 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Column 3: Cart & Profile (Right) */}
-          <div className="justify-self-end flex items-center space-x-3.5">
+          {/* Right: Cart & Profile */}
+          <div className="relative z-20 flex items-center space-x-3.5">
             <Link href="/cart" className="relative p-1 text-brandBlue dark:text-brandOrange">
               <ShoppingCart size={22} />
               {totalItems > 0 && (
@@ -91,14 +92,14 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* DESKTOP HEADER (Logo Size Increased to h-20) */}
+        {/* DESKTOP HEADER (Desktop Logo Size Increased to h-24 for prominent look) */}
         <div className="hidden md:flex justify-between items-center w-full md:w-auto select-none">
           <Link href="/">
             {!imgError && LOGO_IMAGE_URL ? (
               <img 
                 src={LOGO_IMAGE_URL} 
                 alt="Lamiya Electronics" 
-                className="h-20 w-auto object-contain"
+                className="h-24 w-auto object-contain"
                 onError={() => setImgError(true)}
               />
             ) : (
