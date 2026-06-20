@@ -16,8 +16,8 @@ export default function Navbar() {
   const router = useRouter();
   const { t } = useSettings();
 
-  // 🚨 নির্দেশ: নিচে থাকা ডাবল কোটেশনের ("") ভেতরে আপনার Supabase থেকে কপি করা নতুন logo_full.png এর লিঙ্কটি বসিয়ে দিন
-  const LOGO_IMAGE_URL = "https://gquovugjshkgvwfwdfti.supabase.co/storage/v1/object/public/lamiya-electronics/logo_full.png.png";
+  // 🚨 নির্দেশ: নিচে থাকা ডাবল কোটেশনের ("") ভেতরে আপনার Supabase থেকে কপি করা লোগো লিঙ্কটি বসিয়ে দিন
+  const LOGO_IMAGE_URL = "https://gqogdffkmdsdygoxxeyv.supabase.co/storage/v1/object/public/lamiya-electronics/logo_full.png";
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -53,14 +53,14 @@ export default function Navbar() {
             <ThemeToggle />
           </div>
 
-          {/* Column 2: Full PNG Logo in the absolute Middle */}
-          <div className="justify-self-center">
+          {/* Column 2: Full PNG Logo in the absolute Middle (Size Increased to h-14) */}
+          <div className="justify-self-center py-1">
             <Link href="/">
               {!imgError && LOGO_IMAGE_URL ? (
                 <img 
                   src={LOGO_IMAGE_URL} 
                   alt="Lamiya Electronics" 
-                  className="h-9 w-auto object-contain"
+                  className="h-14 w-auto object-contain max-w-[150px]"
                   onError={() => setImgError(true)}
                 />
               ) : (
@@ -91,14 +91,14 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* DESKTOP HEADER (Standard Professional Layout) */}
+        {/* DESKTOP HEADER (Logo Size Increased to h-20) */}
         <div className="hidden md:flex justify-between items-center w-full md:w-auto select-none">
           <Link href="/">
             {!imgError && LOGO_IMAGE_URL ? (
               <img 
                 src={LOGO_IMAGE_URL} 
                 alt="Lamiya Electronics" 
-                className="h-12 w-auto object-contain"
+                className="h-20 w-auto object-contain"
                 onError={() => setImgError(true)}
               />
             ) : (
