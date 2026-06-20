@@ -3,7 +3,6 @@ import { createContext, useContext, useState, useEffect } from 'react';
 
 const SettingsContext = createContext();
 
-// অনুবাদ ডিকশনারি
 const translations = {
   en: {
     nav_home: "Home",
@@ -139,31 +138,13 @@ const translations = {
 
 export function SettingsProvider({ children }) {
   const [lang, setLang] = useState('en');
-  const [theme, setTheme] = useState('light');
 
   useEffect(() => {
     const savedLang = localStorage.getItem('lamiya_lang') || 'en';
-    const savedTheme = localStorage.getItem('lamiya_theme') || 'light';
     setLang(savedLang);
-    setTheme(savedTheme);
-
-    if (savedTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    // ব্রাউজারের ডার্ক ক্লাস থাকলে তা সম্পূর্ণ রিমুভ করা
+    document.documentElement.classList.remove('dark');
   }, []);
-
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    localStorage.setItem('lamiya_theme', newTheme);
-    if (newTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  };
 
   const changeLanguage = (newLang) => {
     setLang(newLang);
@@ -175,7 +156,7 @@ export function SettingsProvider({ children }) {
   };
 
   return (
-    <SettingsContext.Provider value={{ lang, theme, toggleTheme, changeLanguage, t }}>
+    <SettingsContext.Provider value={{ lang, changeLanguage, t }}>
       {children}
     </SettingsContext.Provider>
   );
