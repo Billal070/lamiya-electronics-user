@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { ShoppingCart, Search, Zap, User } from 'lucide-react';
+import { ShoppingCart, Search, User } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabase';
@@ -14,6 +14,11 @@ export default function Navbar() {
   const [user, setUser] = useState(null);
   const router = useRouter();
   const { t } = useSettings();
+
+  // Dynamically generate the logo URL from Supabase Storage env variable
+  const logoUrl = process.env.NEXT_PUBLIC_SUPABASE_URL 
+    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/lamiya-electronics/logo.png`
+    : null;
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -44,13 +49,23 @@ export default function Navbar() {
         
         {/* Logo & Mobile Icons Row */}
         <div className="flex justify-between items-center w-full md:w-auto">
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="bg-brandOrange p-2 rounded-full text-brandBlue">
-              <Zap size={20} fill="#2D4087" />
-            </div>
-            <div>
-              <h1 className="text-lg md:text-2xl font-bold text-brandBlue dark:text-brandOrange leading-none font-sans">LAMIYA</h1>
-              <p className="text-[9px] uppercase font-semibold text-brandOrange dark:text-gray-300 tracking-wider">Electronics and IPS</p>
+          <Link href="/" className="flex items-center space-x-2.5 select-none">
+            {logoUrl ? (
+              <img 
+                src={logoUrl} 
+                alt="Lamiya Logo" 
+                className="w-10 h-10 md:w-12 md:h-12 object-contain"
+                onError={(e) => {
+                  // Fallback if image load fails
+                  e.target.style.display = 'none';
+                }}
+              />
+            ) : (
+              <div className="bg-brandOrange w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-brandBlue font-bold text-lg">L</div>
+            )}
+            <div className="flex flex-col justify-center">
+              <h1 className="text-xl md:text-2xl font-extrabold text-brandBlue dark:text-brandOrange leading-none tracking-wide font-sans">LAMIYA</h1>
+              <p className="text-[9px] uppercase font-bold text-brandOrange dark:text-gray-300 tracking-widest mt-1">Electronics & IPS</p>
             </div>
           </Link>
 
