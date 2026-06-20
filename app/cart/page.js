@@ -4,11 +4,13 @@ import { useCart } from '../../context/CartContext';
 import { supabase } from '../../lib/supabase';
 import { Trash2, ShieldCheck, BadgeCheck, UserCheck, Lock } from 'lucide-react';
 import Link from 'next/link';
+import { useSettings } from '../../context/SettingsContext';
 
 export default function Cart() {
   const { cart, updateQuantity, removeFromCart, clearCart } = useCart();
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const { t } = useSettings();
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -19,7 +21,6 @@ export default function Cart() {
   const [createdOrderId, setCreatedOrderId] = useState(null);
 
   useEffect(() => {
-    // Check if customer is logged in
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         setUser(user);
@@ -35,20 +36,19 @@ export default function Cart() {
     return total + price * item.quantity;
   }, 0);
 
-  const deliveryCharge = subtotal > 0 ? 100 : 0; // Standard Delivery charge
+  const deliveryCharge = subtotal > 0 ? 100 : 0; 
   const grandTotal = subtotal + deliveryCharge;
 
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
     if (cart.length === 0 || !user) return;
     if (!name || !phone || !address) {
-      alert('দয়া করে নাম, মোবাইল নম্বর এবং সম্পূর্ণ ঠিকানা পূরণ করুন।');
+      alert('Required fields must be filled.');
       return;
     }
 
     setSubmitting(true);
     
-    // 1. Create order record
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
       .insert({
@@ -65,12 +65,11 @@ export default function Cart() {
 
     if (orderError) {
       console.error(orderError);
-      alert('অর্ডার এরর ডিটেইলস: ' + orderError.message + ' (কোড: ' + orderError.code + ')');
+      alert('Order Error: ' + orderError.message + ' (Code: ' + orderError.code + ')');
       setSubmitting(false);
       return;
     }
 
-    // 2. Create order items records
     const orderItemsToInsert = cart.map((item) => {
       const activePrice = item.discount_price && item.discount_price < item.price ? item.discount_price : item.price;
       return {
@@ -87,7 +86,7 @@ export default function Cart() {
 
     if (itemsError) {
       console.error(itemsError);
-      alert('পণ্যের ডাটাবেজ এরর: ' + itemsError.message);
+      alert('Database Error: ' + itemsError.message);
       setSubmitting(false);
       return;
     }
@@ -106,14 +105,14 @@ export default function Cart() {
             <BadgeCheck size={48} />
           </div>
         </div>
-        <h2 className="text-2xl font-bold text-brandDark">আপনার অর্ডারটি সফলভাবে সম্পন্ন হয়েছে!</h2>
+        <h2 className="text-2xl font-bold text-brandDark">{t('order_success_title')}</h2>
         <p className="text-sm text-gray-500 leading-relaxed">
-          ধন্যবাদ আমাদের সাথে থাকার জন্য। আপনার অর্ডার আইডি: <strong className="text-brandBlue">#{createdOrderId}</strong>। 
-          খুব শীঘ্রই আমাদের একজন প্রতিনিধি আপনার দেওয়া মোবাইল নম্বরে কল করে অর্ডারটি নিশ্চিত করবেন।
+          {t('order_success_desc')} <strong className="text-brandBlue">#{createdOrderId}</strong>. 
+          {t('order_success_note')}
         </p>
         <div className="flex justify-center gap-4 pt-4">
           <Link href="/" className="bg-brandBlue text-white font-bold px-6 py-3 rounded-lg hover:bg-opacity-95 transition-all text-sm shadow">
-            আরও কেনাকাটা করুন
+            {t('cart_home_btn')}
           </Link>
         </div>
       </div>
@@ -126,11 +125,11 @@ export default function Cart() {
         <div className="flex justify-center text-gray-300">
           <Trash2 size={48} />
         </div>
-        <h2 className="text-xl font-bold text-brandDark">আপনার শপিং কার্টটি খালি!</h2>
-        <p className="text-sm text-gray-400">কার্টে পণ্য যোগ করতে প্রথমে হোমপেজ থেকে আপনার পছন্দের পণ্যগুলো বেছে নিন।</p>
+        <h2 className="text-xl font-bold text-brandDark">{t('cart_empty')}</h2>
+        <p className="text-sm text-gray-400">{t('cart_empty_desc')}</p>
         <div className="flex justify-center pt-4">
           <Link href="/" className="bg-brandBlue text-white font-bold px-6 py-3 rounded-lg hover:bg-opacity-95 transition-all text-sm shadow">
-            পণ্য দেখতে হোমপেজে যান
+            {t('cart_home_btn')}
           </Link>
         </div>
       </div>
@@ -139,9 +138,8 @@ export default function Cart() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      {/* Cart Items List */}
       <div className="lg:col-span-2 space-y-4">
-        <h2 className="text-xl font-bold text-brandDark">শপিং কার্ট</h2>
+        <h2 className="text-xl font-bold text-brandDark">{t('cart_title')}</h2>
         <div className="space-y-4">
           {cart.map((item) => {
             const hasDiscount = item.discount_price && item.discount_price < item.price;
@@ -160,7 +158,6 @@ export default function Cart() {
                   <p className="text-xs text-brandBlue font-bold">৳{Number(currentPrice).toLocaleString()}</p>
                 </div>
 
-                {/* Quantity Editor */}
                 <div className="flex border rounded-lg overflow-hidden w-24 bg-gray-50 h-8">
                   <button
                     onClick={() => updateQuantity(item.id, item.quantity - 1)}
@@ -179,7 +176,6 @@ export default function Cart() {
                   </button>
                 </div>
 
-                {/* Delete Button */}
                 <button
                   onClick={() => removeFromCart(item.id)}
                   className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors"
@@ -192,64 +188,60 @@ export default function Cart() {
         </div>
       </div>
 
-      {/* Checkout or Login Form Section */}
       <div className="space-y-6">
-        {/* Price Summary */}
         <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
-          <h3 className="text-lg font-bold text-brandDark border-b pb-2">অর্ডার সারাংশ</h3>
+          <h3 className="text-lg font-bold text-brandDark border-b pb-2">{t('order_summary')}</h3>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between text-gray-500">
-              <span>সাব-টোটাল:</span>
+              <span>{t('subtotal')}</span>
               <span className="font-semibold text-brandDark">৳{subtotal.toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-gray-500">
-              <span>ডেলিভারি চার্জ:</span>
+              <span>{t('delivery')}</span>
               <span className="font-semibold text-brandDark">৳{deliveryCharge.toLocaleString()}</span>
             </div>
             <div className="border-t pt-2 flex justify-between font-bold text-base text-brandDark">
-              <span>সর্বমোট মূল্য:</span>
+              <span>{t('total')}</span>
               <span className="text-brandBlue text-lg">৳{grandTotal.toLocaleString()}</span>
             </div>
           </div>
         </div>
 
-        {/* Dynamic Form Check */}
         {authLoading ? (
           <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm text-center py-10 font-bold text-gray-400">
-            লোডিং হচ্ছে...
+            Loading...
           </div>
         ) : user ? (
-          /* Checkout Form for Logged In User */
           <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
             <div className="flex items-center gap-2 border-b pb-2 text-green-600">
               <UserCheck size={20} />
-              <h3 className="text-lg font-bold text-brandDark">ডেলিভারি তথ্য দিন</h3>
+              <h3 className="text-lg font-bold text-brandDark">{t('delivery_info')}</h3>
             </div>
             <form onSubmit={handlePlaceOrder} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-gray-500 mb-1">আপনার নাম (আবশ্যক)</label>
+                <label className="block text-xs font-bold text-gray-500 mb-1">{t('label_name')}</label>
                 <input
                   type="text"
                   required
-                  placeholder="যেমন: মোঃ করিম"
+                  placeholder="e.g. Karim"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brandBlue bg-gray-50"
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-500 mb-1">মোবাইল নম্বর (আবশ্যক)</label>
+                <label className="block text-xs font-bold text-gray-500 mb-1">{t('label_phone')}</label>
                 <input
                   type="tel"
                   required
-                  placeholder="যেমন: 017XXXXXXXX"
+                  placeholder="e.g. 017XXXXXXXX"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brandBlue bg-gray-50"
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-500 mb-1">ইমেইল (অ্যাকাউন্ট ইমেইল)</label>
+                <label className="block text-xs font-bold text-gray-500 mb-1">Email</label>
                 <input
                   type="email"
                   disabled
@@ -258,11 +250,11 @@ export default function Cart() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-500 mb-1">ডেলিভারির সম্পূর্ণ ঠিকানা (আবশ্যক)</label>
+                <label className="block text-xs font-bold text-gray-500 mb-1">{t('label_address')}</label>
                 <textarea
                   required
                   rows="3"
-                  placeholder="যেমন: গ্রাম, ডাকঘর, থানা, জেলা"
+                  placeholder="Address..."
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brandBlue bg-gray-50"
@@ -271,36 +263,35 @@ export default function Cart() {
 
               <div className="bg-blue-50 border border-blue-100 p-3 rounded-lg flex gap-2 items-start text-xs text-blue-700 leading-relaxed">
                 <ShieldCheck className="shrink-0 text-brandBlue" size={16} />
-                <span>পেমেন্ট পদ্ধতি: <strong>ক্যাশ অন ডেলিভারি (পণ্য হাতে পেয়ে পেমেন্ট করুন)</strong>। আমরা খুব দ্রুত আপনার সাথে যোগাযোগ করব।</span>
+                <span>{t('cod_info')}</span>
               </div>
 
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-3.5 bg-brandOrange text-brandBlue font-extrabold text-sm rounded-xl hover:bg-opacity-95 transition-all shadow shadow-brandOrange/20 uppercase"
+                className="w-full py-3.5 bg-brandOrange text-brandBlue font-extrabold text-sm rounded-xl hover:bg-opacity-95 transition-all shadow"
               >
-                {submitting ? 'অর্ডার হচ্ছে...' : 'অর্ডার নিশ্চিত করুন (৳' + grandTotal.toLocaleString() + ')'}
+                {submitting ? 'Processing...' : t('btn_place_order') + ' (৳' + grandTotal.toLocaleString() + ')'}
               </button>
             </form>
           </div>
         ) : (
-          /* Login Required Card */
           <div className="bg-white p-6 rounded-xl border border-red-100 shadow-sm text-center space-y-4 py-8">
             <div className="flex justify-center text-brandBlue">
               <div className="bg-blue-50 p-4 rounded-full">
                 <Lock size={32} />
               </div>
             </div>
-            <h3 className="text-base font-extrabold text-brandDark">অর্ডার করতে লগইন করা আবশ্যক</h3>
+            <h3 className="text-base font-extrabold text-brandDark">{t('login_required')}</h3>
             <p className="text-xs text-gray-400 leading-relaxed">
-              অর্ডার করতে এবং অর্ডারটি পরবর্তী সময়ে ট্র্যাক করতে অনুগ্রহ করে আপনার কাস্টমার অ্যাকাউন্ট দিয়ে লগইন করুন।
+              {t('login_required_desc')}
             </p>
             <div className="pt-2">
               <Link
                 href="/login"
                 className="block w-full py-3 bg-brandBlue text-white font-bold rounded-xl hover:bg-opacity-95 text-xs transition-all shadow"
               >
-                লগইন / অ্যাকাউন্ট তৈরি করুন
+                {t('login_btn')}
               </Link>
             </div>
           </div>
