@@ -60,7 +60,7 @@ export default function Navbar() {
             <Link href="/cart" className="relative p-1 text-brandBlue dark:text-brandOrange">
               <ShoppingCart size={22} />
               {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 bg-brandOrange text-brandBlue text-[9px] font-extrabold rounded-full w-4.5 h-4.5 flex items-center justify-center border border-white dark:border-slate-900 shadow-sm">
+                <span className="absolute -top-1.5 -right-1.5 bg-brandOrange text-brandBlue text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border border-white dark:border-slate-900 shadow-sm">
                   {totalItems}
                 </span>
               )}
@@ -98,7 +98,7 @@ export default function Navbar() {
           <Link href="/cart" className="relative p-2 text-brandBlue dark:text-brandOrange hover:text-brandOrange transition-colors">
             <ShoppingCart size={24} />
             {totalItems > 0 && (
-              <span className="absolute -top-1 -right-1 bg-brandOrange text-brandBlue text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white dark:border-slate-900 shadow-sm">
+              <span className="absolute -top-1 bg-brandOrange text-brandBlue text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white dark:border-slate-900 shadow-sm">
                 {totalItems}
               </span>
             )}
