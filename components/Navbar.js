@@ -12,13 +12,12 @@ export default function Navbar() {
   const { cart } = useCart();
   const [searchQuery, setSearchQuery] = useState('');
   const [user, setUser] = useState(null);
+  const [imgError, setImgError] = useState(false);
   const router = useRouter();
   const { t } = useSettings();
 
-  // Dynamically generate the logo URL from Supabase Storage env variable
-  const logoUrl = process.env.NEXT_PUBLIC_SUPABASE_URL 
-    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/lamiya-electronics/logo.png`
-    : null;
+  // 🚨 নির্দেশ: নিচে থাকা ডাবল কোটেশনের ("") ভেতরে আপনার Supabase থেকে কপি করা লোগো লিঙ্কটি বসিয়ে দিন
+  const LOGO_IMAGE_URL = "https://gqogdffkmdsdygoxxeyv.supabase.co/storage/v1/object/public/lamiya-electronics/logo.png";
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -49,19 +48,19 @@ export default function Navbar() {
         
         {/* Logo & Mobile Icons Row */}
         <div className="flex justify-between items-center w-full md:w-auto">
-          <Link href="/" className="flex items-center space-x-2.5 select-none">
-            {logoUrl ? (
+          <Link href="/" className="flex items-center gap-3 select-none">
+            {/* Logo Image with perfect vertical centering fallback */}
+            {!imgError && LOGO_IMAGE_URL ? (
               <img 
-                src={logoUrl} 
+                src={LOGO_IMAGE_URL} 
                 alt="Lamiya Logo" 
-                className="w-10 h-10 md:w-12 md:h-12 object-contain"
-                onError={(e) => {
-                  // Fallback if image load fails
-                  e.target.style.display = 'none';
-                }}
+                className="w-10 h-10 md:w-12 md:h-12 object-contain shrink-0"
+                onError={() => setImgError(true)}
               />
             ) : (
-              <div className="bg-brandOrange w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-brandBlue font-bold text-lg">L</div>
+              <div className="bg-brandOrange w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-brandBlue font-extrabold text-lg shrink-0 shadow-sm">
+                L
+              </div>
             )}
             <div className="flex flex-col justify-center">
               <h1 className="text-xl md:text-2xl font-extrabold text-brandBlue dark:text-brandOrange leading-none tracking-wide font-sans">LAMIYA</h1>
