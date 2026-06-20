@@ -16,8 +16,8 @@ export default function Navbar() {
   const router = useRouter();
   const { t } = useSettings();
 
-  // 🚨 নির্দেশ: নিচে থাকা ডাবল কোটেশনের ("") ভেতরে আপনার Supabase থেকে কপি করা লোগো লিঙ্কটি বসিয়ে দিন
-  const LOGO_IMAGE_URL = "https://gquovugjshkgvwfwdfti.supabase.co/storage/v1/object/public/lamiya-electronics/logo.png.png";
+  // 🚨 নির্দেশ: নিচে থাকা ডাবল কোটেশনের ("") ভেতরে আপনার Supabase থেকে কপি করা নতুন logo_full.png এর লিঙ্কটি বসিয়ে দিন
+  const LOGO_IMAGE_URL = "https://gqogdffkmdsdygoxxeyv.supabase.co/storage/v1/object/public/lamiya-electronics/logo_full.png";
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -46,31 +46,31 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 bg-white dark:bg-slate-900 border-b dark:border-slate-800 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 py-3 md:py-4 flex flex-col md:flex-row justify-between items-center gap-3 md:gap-4">
         
-        {/* Logo & Mobile Icons Row */}
-        <div className="flex justify-between items-center w-full md:w-auto">
-          <Link href="/" className="flex items-center gap-3 select-none">
-            {/* Logo Image with perfect vertical centering fallback */}
-            {!imgError && LOGO_IMAGE_URL ? (
-              <img 
-                src={LOGO_IMAGE_URL} 
-                alt="Lamiya Logo" 
-                className="w-10 h-10 md:w-12 md:h-12 object-contain shrink-0"
-                onError={() => setImgError(true)}
-              />
-            ) : (
-              <div className="bg-brandOrange w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-brandBlue font-extrabold text-lg shrink-0 shadow-sm">
-                L
-              </div>
-            )}
-            <div className="flex flex-col justify-center">
-              <h1 className="text-xl md:text-2xl font-extrabold text-brandBlue dark:text-brandOrange leading-none tracking-wide font-sans">LAMIYA</h1>
-              <p className="text-[9px] uppercase font-bold text-brandOrange dark:text-gray-300 tracking-widest mt-1">Electronics & IPS</p>
-            </div>
-          </Link>
-
-          {/* Mobile Only Quick Actions */}
-          <div className="flex items-center space-x-3.5 md:hidden">
+        {/* MOBILE HEADER (3-Column Layout: Center Logo) */}
+        <div className="grid grid-cols-3 items-center w-full md:hidden select-none">
+          {/* Column 1: Theme Toggle (Left) */}
+          <div className="justify-self-start">
             <ThemeToggle />
+          </div>
+
+          {/* Column 2: Full PNG Logo in the absolute Middle */}
+          <div className="justify-self-center">
+            <Link href="/">
+              {!imgError && LOGO_IMAGE_URL ? (
+                <img 
+                  src={LOGO_IMAGE_URL} 
+                  alt="Lamiya Electronics" 
+                  className="h-9 w-auto object-contain"
+                  onError={() => setImgError(true)}
+                />
+              ) : (
+                <span className="text-sm font-extrabold text-brandBlue dark:text-brandOrange">LAMIYA</span>
+              )}
+            </Link>
+          </div>
+
+          {/* Column 3: Cart & Profile (Right) */}
+          <div className="justify-self-end flex items-center space-x-3.5">
             <Link href="/cart" className="relative p-1 text-brandBlue dark:text-brandOrange">
               <ShoppingCart size={22} />
               {totalItems > 0 && (
@@ -91,7 +91,23 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Search Bar - Full width on mobile */}
+        {/* DESKTOP HEADER (Standard Professional Layout) */}
+        <div className="hidden md:flex justify-between items-center w-full md:w-auto select-none">
+          <Link href="/">
+            {!imgError && LOGO_IMAGE_URL ? (
+              <img 
+                src={LOGO_IMAGE_URL} 
+                alt="Lamiya Electronics" 
+                className="h-12 w-auto object-contain"
+                onError={() => setImgError(true)}
+              />
+            ) : (
+              <span className="text-xl font-extrabold text-brandBlue dark:text-brandOrange">LAMIYA ELECTRONICS</span>
+            )}
+          </Link>
+        </div>
+
+        {/* Search Bar - Responsive */}
         <form onSubmit={handleSearch} className="flex w-full md:max-w-md lg:max-w-lg border dark:border-slate-700 rounded-lg overflow-hidden bg-gray-50 dark:bg-slate-800 focus-within:border-brandBlue transition-all">
           <input
             type="text"
