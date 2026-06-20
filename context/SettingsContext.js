@@ -67,7 +67,11 @@ const translations = {
     no_orders: "No orders found!",
     no_orders_desc: "You will see your orders here once you place them.",
     settings_lang: "Language",
-    settings_theme: "Theme"
+    settings_theme: "Theme",
+    // Footer translations
+    footer_quick_links: "Quick Links",
+    footer_popular_categories: "Popular Categories",
+    footer_contact_us: "Contact Us"
   },
   bn: {
     nav_home: "হোম",
@@ -132,7 +136,11 @@ const translations = {
     no_orders: "আপনার কোনো অর্ডার পাওয়া যায়নি!",
     no_orders_desc: "আপনার কার্টে থাকা পণ্যগুলো অর্ডার করলেই সেই অর্ডারগুলো এখানে দেখতে পাবেন।",
     settings_lang: "ভাষা",
-    settings_theme: "থিম"
+    settings_theme: "থিম",
+    // Footer translations
+    footer_quick_links: "গুরুত্বপূর্ণ লিঙ্ক",
+    footer_popular_categories: "জনপ্রিয় ক্যাটাগরি",
+    footer_contact_us: "যোগাযোগ করুন"
   }
 };
 
@@ -142,7 +150,6 @@ export function SettingsProvider({ children }) {
   useEffect(() => {
     const savedLang = localStorage.getItem('lamiya_lang') || 'en';
     setLang(savedLang);
-    // ব্রাউজারের ডার্ক ক্লাস থাকলে তা সম্পূর্ণ রিমুভ করা
     document.documentElement.classList.remove('dark');
   }, []);
 
