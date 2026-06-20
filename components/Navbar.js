@@ -46,7 +46,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 bg-white dark:bg-slate-900 border-b dark:border-slate-800 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 py-3 md:py-4 flex flex-col md:flex-row justify-between items-center gap-3 md:gap-4">
         
-        {/* MOBILE HEADER (Absolute Centered Layout - Absolute Center) */}
+        {/* MOBILE HEADER (Absolute Centered Layout - Size Hacked for padding) */}
         <div className="relative flex items-center justify-between w-full md:hidden select-none">
           
           {/* Left: Theme Toggle */}
@@ -54,14 +54,14 @@ export default function Navbar() {
             <ThemeToggle />
           </div>
 
-          {/* Center: Centered Logo with expanded width constraint (Size: h-16) */}
-          <div className="absolute left-1/2 -translate-x-1/2 z-10 py-1">
-            <Link href="/">
+          {/* Center: Centered Logo (Custom height 110px with negative vertical margins to crop top/bottom blank space) */}
+          <div className="absolute left-1/2 -translate-x-1/2 z-10 overflow-hidden flex items-center">
+            <Link href="/" className="flex items-center justify-center">
               {!imgError && LOGO_IMAGE_URL ? (
                 <img 
                   src={LOGO_IMAGE_URL} 
                   alt="Lamiya Electronics" 
-                  className="h-16 w-auto object-contain"
+                  className="h-[110px] w-auto object-contain -my-8"
                   onError={() => setImgError(true)}
                 />
               ) : (
@@ -92,14 +92,14 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* DESKTOP HEADER (Desktop Logo Size Increased to h-24 for prominent look) */}
-        <div className="hidden md:flex justify-between items-center w-full md:w-auto select-none">
-          <Link href="/">
+        {/* DESKTOP HEADER (Desktop Logo Custom height 180px with negative vertical margins) */}
+        <div className="hidden md:flex justify-between items-center w-full md:w-auto select-none overflow-hidden h-16">
+          <Link href="/" className="flex items-center">
             {!imgError && LOGO_IMAGE_URL ? (
               <img 
                 src={LOGO_IMAGE_URL} 
                 alt="Lamiya Electronics" 
-                className="h-24 w-auto object-contain"
+                className="h-[180px] w-auto object-contain -my-14"
                 onError={() => setImgError(true)}
               />
             ) : (
