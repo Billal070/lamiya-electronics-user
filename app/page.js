@@ -33,10 +33,18 @@ function HomeContent() {
 
   async function fetchProducts() {
     setLoading(true);
-    let query = supabase.from('products').select('*, categories(name)');
+    let query;
 
+    // ১. ডাটাবেজ থেকেই সরাসরি ক্যাটাগরি স্লাগ অনুযায়ী ফিল্টার করা (স্লাগ সহ)
     if (selectedCategory) {
-      query = query.eq('categories.slug', selectedCategory);
+      query = supabase
+        .from('products')
+        .select('*, categories!inner(name, slug)')
+        .eq('categories.slug', selectedCategory);
+    } else {
+      query = supabase
+        .from('products')
+        .select('*, categories(name, slug)');
     }
 
     if (searchQuery) {
@@ -45,11 +53,9 @@ function HomeContent() {
 
     const { data, error } = await query;
     if (!error && data) {
-      let filteredData = data;
-      if (selectedCategory) {
-        filteredData = data.filter(p => p.categories && p.categories.slug === selectedCategory);
-      }
-      setProducts(filteredData);
+      setProducts(data);
+    } else {
+      console.error('প্রোডাক্ট লোড করার সময় ভুল হয়েছে:', error);
     }
     setLoading(false);
   }
