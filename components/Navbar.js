@@ -12,15 +12,14 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState('');
   const [user, setUser] = useState(null);
   const [imgError, setImgError] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false); // মেনু ওপেন/ক্লোজ স্টেট
-  const [categories, setCategories] = useState([]); // ক্যাটাগরি তালিকা স্টেট
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [categories, setCategories] = useState([]);
   const router = useRouter();
   const { t } = useSettings();
 
   const LOGO_IMAGE_URL = "https://gquovugjshkgvwfwdfti.supabase.co/storage/v1/object/public/lamiya-electronics/logo_full.png.png";
 
   useEffect(() => {
-    // ১. কাস্টমার লগইন চেক করা
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
     });
@@ -29,7 +28,6 @@ export default function Navbar() {
       setUser(session?.user ?? null);
     });
 
-    // ২. ডাটাবেজ থেকে রিয়েল-টাইম ক্যাটাগরি লোড করা (মেনুতে দেখানোর জন্য)
     supabase.from('categories')
       .select('*')
       .order('name', { ascending: true })
@@ -60,7 +58,7 @@ export default function Navbar() {
         {/* ROW 1: UTILITIES ROW */}
         <div className="relative flex items-center justify-between w-full select-none h-14 md:h-16">
           
-          {/* Left Side: Dynamic Menu Button (ক্লিক করলে মেনু ওপেন হবে) */}
+          {/* Left Side: Menu Button */}
           <div className="relative z-20 flex items-center">
             <button 
               onClick={() => setIsMenuOpen(true)} 
@@ -145,11 +143,7 @@ export default function Navbar() {
 
       </div>
 
-      {/* ======================================================== */}
-      {/* DYNAMIC DRAWERS: SLIDING MENU SECTION WITH SMOOTH TRANSITIONS */}
-      {/* ======================================================== */}
-      
-      {/* 1. Backdrop Overlay (আবছা কালো ব্যাকগ্রাউন্ড) */}
+      {/* Backdrop Overlay */}
       <div 
         className={`fixed inset-0 bg-black/40 z-50 transition-opacity duration-300 ${
           isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
@@ -157,17 +151,16 @@ export default function Navbar() {
         onClick={() => setIsMenuOpen(false)}
       />
 
-      {/* 2. Sliding Drawer Panel (বাম পাশ থেকে স্মুথলি স্লাইড করে আসবে) */}
+      {/* Sliding Drawer Panel (LAMIYA টেক্সট রিমুভ করা হয়েছে) */}
       <div 
         className={`fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-white dark:bg-slate-900 z-50 shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col ${
           isMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* Drawer Header */}
+        {/* Drawer Header - Cleaned up to remove hardcoded LAMIYA text */}
         <div className="p-5 border-b dark:border-slate-800 flex justify-between items-center bg-gray-50 dark:bg-slate-950">
           <div>
-            <h3 className="font-extrabold text-brandBlue dark:text-brandOrange text-base leading-none">LAMIYA</h3>
-            <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Navigation Menu</span>
+            <span className="text-xs font-extrabold uppercase text-brandBlue dark:text-brandOrange tracking-wider">Navigation Menu</span>
           </div>
           <button 
             onClick={() => setIsMenuOpen(false)}
@@ -186,7 +179,7 @@ export default function Navbar() {
             <Link 
               href="/" 
               onClick={() => setIsMenuOpen(false)}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold text-brandDark dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold text-brandDark dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
             >
               {t('nav_home')}
             </Link>
@@ -216,14 +209,14 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Section B: Categories (ডাটাবেজ থেকে রিয়েল-টাইমে জেনারেট হবে) */}
+          {/* Section B: Categories */}
           <div className="space-y-2">
             <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 border-b pb-1 dark:border-slate-800">{t('cat_title')}</h4>
             <div className="flex flex-col space-y-1">
               <Link 
                 href="/" 
                 onClick={() => setIsMenuOpen(false)}
-                className="px-3 py-2 rounded-lg text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                className="px-3 py-2.5 rounded-lg text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
               >
                 {t('all_products')}
               </Link>
@@ -232,7 +225,7 @@ export default function Navbar() {
                   key={cat.id}
                   href={`/?category=${cat.slug}`}
                   onClick={() => setIsMenuOpen(false)}
-                  className="px-3 py-2 rounded-lg text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors capitalize"
+                  className="px-3 py-2.5 rounded-lg text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors capitalize"
                 >
                   {cat.name}
                 </Link>
