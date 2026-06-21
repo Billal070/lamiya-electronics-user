@@ -25,7 +25,7 @@ export default function ProductDetails() {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
-  const [sortBy, setSortBy] = useState('newest'); // 'newest' | 'highest' | 'lowest'
+  const [sortBy, setSortBy] = useState('newest'); 
 
   useEffect(() => {
     fetchProduct();
@@ -100,8 +100,11 @@ export default function ProductDetails() {
     return <div className="text-center py-20 font-bold text-red-500">{t('not_found')}</div>;
   }
 
-  const hasDiscount = product.discount_price && product.discount_price < product.price;
-  const currentPrice = hasDiscount ? product.discount_price : product.price;
+  // গাণিতিক সংখ্যায় রূপান্তর
+  const originalPrice = Number(product.price);
+  const discountPrice = Number(product.discount_price);
+  const hasDiscount = discountPrice > 0 && discountPrice < originalPrice;
+  
   const defaultPlaceholder = 'https://placehold.co/500x500/e2e8f0/1e293b?text=Lamiya+Electronics';
 
   // Calculate Dynamic average rating
@@ -179,12 +182,12 @@ export default function ProductDetails() {
               {hasDiscount ? (
                 <div className="space-y-1">
                   <div className="flex items-baseline space-x-3">
-                    <span className="text-3xl font-extrabold text-brandOrange">৳{Number(product.discount_price).toLocaleString()}</span>
-                    <span className="text-sm text-gray-400 line-through">৳{Number(product.price).toLocaleString()}</span>
+                    <span className="text-3xl font-extrabold text-brandOrange">৳{discountPrice.toLocaleString()}</span>
+                    <span className="text-sm text-gray-400 line-through">৳{originalPrice.toLocaleString()}</span>
                   </div>
                 </div>
               ) : (
-                <span className="text-3xl font-extrabold text-brandOrange">৳{Number(product.price).toLocaleString()}</span>
+                <span className="text-3xl font-extrabold text-brandOrange">৳{originalPrice.toLocaleString()}</span>
               )}
             </div>
 
