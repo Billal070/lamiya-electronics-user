@@ -61,34 +61,36 @@ function HomeContent() {
 
   return (
     <div className="space-y-6 md:space-y-8">
-      {/* Hero Banner */}
-      <div className="bg-gradient-to-r from-brandBlue to-blue-900 rounded-2xl p-6 md:p-12 text-white flex flex-col md:flex-row justify-between items-center gap-6 shadow-sm">
-        <div className="space-y-3 md:space-y-4 max-w-lg text-center md:text-left">
-          <span className="inline-block bg-brandOrange text-brandBlue text-[10px] md:text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-            {t('banner_badge')}
-          </span>
-          <h1 className="text-2xl md:text-5xl font-extrabold leading-tight">
-            {t('banner_title')}
-          </h1>
-          <p className="text-xs md:text-base text-gray-200">
-            {t('banner_subtitle')}
-          </p>
-          <div className="pt-2">
-            <button className="bg-brandOrange text-brandBlue font-bold px-6 py-3 rounded-lg hover:bg-opacity-90 transition-all shadow">
-              {t('banner_btn')}
-            </button>
+      {/* Hero Banner - শুধুমাত্র All Products বা মূল হোমপেজে থাকলেই দেখা যাবে */}
+      {!selectedCategory && (
+        <div className="bg-gradient-to-r from-brandBlue to-blue-900 rounded-2xl p-6 md:p-12 text-white flex flex-col md:flex-row justify-between items-center gap-6 shadow-sm transition-all duration-300">
+          <div className="space-y-3 md:space-y-4 max-w-lg text-center md:text-left">
+            <span className="inline-block bg-brandOrange text-brandBlue text-[10px] md:text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+              {t('banner_badge')}
+            </span>
+            <h1 className="text-2xl md:text-5xl font-extrabold leading-tight">
+              {t('banner_title')}
+            </h1>
+            <p className="text-xs md:text-base text-gray-200">
+              {t('banner_subtitle')}
+            </p>
+            <div className="pt-2">
+              <button className="bg-brandOrange text-brandBlue font-bold px-6 py-3 rounded-lg hover:bg-opacity-90 transition-all shadow">
+                {t('banner_btn')}
+              </button>
+            </div>
+          </div>
+          <div className="w-full md:w-1/2 hidden md:flex justify-center">
+            <div className="relative bg-white bg-opacity-10 p-6 rounded-2xl backdrop-blur-sm border border-white border-opacity-10 max-w-sm">
+              <img 
+                src="https://placehold.co/400x300/2d4087/ffffff?text=Premium+IPS+Systems" 
+                alt="Promo IPS" 
+                className="rounded-lg object-contain w-full h-auto"
+              />
+            </div>
           </div>
         </div>
-        <div className="w-full md:w-1/2 hidden md:flex justify-center">
-          <div className="relative bg-white bg-opacity-10 p-6 rounded-2xl backdrop-blur-sm border border-white border-opacity-10 max-w-sm">
-            <img 
-              src="https://placehold.co/400x300/2d4087/ffffff?text=Premium+IPS+Systems" 
-              alt="Promo IPS" 
-              className="rounded-lg object-contain w-full h-auto"
-            />
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* Mobile Only: Horizontal Swipeable Categories */}
       <div className="lg:hidden space-y-2">
@@ -190,7 +192,7 @@ function HomeContent() {
         </div>
       </div>
 
-      {/* NEW BRAND VALUE PROPS AT THE VERY BOTTOM (ফুটারে প্রবেশের ঠিক আগে) */}
+      {/* NEW BRAND VALUE PROPS AT THE VERY BOTTOM */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-white p-4 md:p-6 rounded-xl border border-gray-100 shadow-sm">
         <div className="flex flex-col items-center text-center p-2">
           <BadgeCheck className="text-brandBlue mb-1.5" size={28} />
