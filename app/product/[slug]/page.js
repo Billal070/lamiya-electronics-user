@@ -332,7 +332,7 @@ export default function ProductDetails() {
               </div>
             </div>
 
-            {/* Main Reviews Layout (Form + List with Sort option) */}
+            {/* Main Reviews Layout */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Left Side: Submit Form */}
               <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 h-fit">
@@ -409,7 +409,7 @@ export default function ProductDetails() {
                         <div className="flex justify-between items-center">
                           <h5 className="font-bold text-sm text-brandDark">{rev.user_name}</h5>
                           <span className="text-[11px] text-gray-400 font-semibold">
-                            {new Date(rev.created_at).toLocaleDateString('en-GB')} {/* Format: DD/MM/YYYY */}
+                            {new Date(rev.created_at).toLocaleDateString('en-GB')}
                           </span>
                         </div>
                         {/* Stars */}
