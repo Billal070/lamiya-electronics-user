@@ -1,11 +1,13 @@
 'use client';
 import { useWishlist } from '../../context/WishlistContext';
 import ProductCard from '../../components/ProductCard';
-import { Heart, PackageOpen } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import Link from 'next/link';
+import { useSettings } from '../../context/SettingsContext';
 
 export default function Wishlist() {
   const { wishlist } = useWishlist();
+  const { t } = useSettings();
 
   if (wishlist.length === 0) {
     return (
@@ -13,11 +15,11 @@ export default function Wishlist() {
         <div className="flex justify-center text-gray-300">
           <Heart size={48} />
         </div>
-        <h2 className="text-xl font-bold text-brandDark">আপনার ইচ্ছেতালিকাটি সম্পূর্ণ খালি!</h2>
-        <p className="text-sm text-gray-400">হোমপেজ থেকে আপনার পছন্দের পণ্যের ওপর থাকা লাভ আইকনে ক্লিক করে এখানে যুক্ত করতে পারেন।</p>
+        <h2 className="text-xl font-bold text-brandDark">{t('wishlist_empty')}</h2>
+        <p className="text-sm text-gray-400">{t('wishlist_empty_desc')}</p>
         <div className="flex justify-center pt-4">
           <Link href="/" className="bg-brandBlue text-white font-bold px-6 py-3 rounded-lg hover:bg-opacity-95 transition-all text-sm shadow">
-            প্রোডাক্ট দেখতে হোমপেজে যান
+            {t('cart_home_btn')}
           </Link>
         </div>
       </div>
@@ -29,10 +31,10 @@ export default function Wishlist() {
       <div className="flex justify-between items-center border-b pb-4">
         <h1 className="text-xl md:text-2xl font-bold text-brandDark flex items-center gap-2">
           <Heart className="text-red-500 fill-red-500" size={24} />
-          আপনার ইচ্ছেতালিকা (Wishlist)
+          {t('wishlist_title')}
         </h1>
         <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-3 py-1.5 rounded-full">
-          মোট প্রোডাক্ট: {wishlist.length} টি
+          {t('wishlist_total')} {wishlist.length}
         </span>
       </div>
 
