@@ -15,7 +15,6 @@ const translations = {
     banner_subtitle: "Buy our advanced IPS systems and home appliances at attractive offers for low-voltage and uninterrupted power backup.",
     banner_badge: "Super Offer Dhamaka",
     banner_btn: "View Products",
-    // New Footer value props
     prop_quality: "Best Quality",
     prop_quality_desc: "100% Original Products",
     prop_support: "24/7 Support",
@@ -72,7 +71,12 @@ const translations = {
     // Footer translations
     footer_quick_links: "Quick Links",
     footer_popular_categories: "Popular Categories",
-    footer_contact_us: "Contact Us"
+    footer_contact_us: "Contact Us",
+    // Wishlist translations
+    wishlist_title: "My Wishlist",
+    wishlist_empty: "Your wishlist is empty!",
+    wishlist_empty_desc: "Click the heart icon on any product on the homepage to save it here.",
+    wishlist_total: "Total Products:"
   },
   bn: {
     nav_home: "হোম",
@@ -85,7 +89,6 @@ const translations = {
     banner_subtitle: "লো-ভোল্টেজ ও নিরবচ্ছিন্ন বিদ্যুৎ ব্যাকআপের জন্য আমাদের উন্নত প্রযুক্তির আইপিএস এবং সেরা ইলেকট্রনিক্স হোম অ্যাপ্লায়েন্স পণ্যগুলো কিনুন আকর্ষণীয় অফারে।",
     banner_badge: "সুপার অফার ধামাকা",
     banner_btn: "পণ্যগুলো দেখুন",
-    // New Footer value props
     prop_quality: "সেরা কোয়ালিটি",
     prop_quality_desc: "১০০% অরিজিনাল পণ্য",
     prop_support: "সার্বক্ষণিক সাপোর্ট",
@@ -142,7 +145,12 @@ const translations = {
     // Footer translations
     footer_quick_links: "গুরুত্বপূর্ণ লিঙ্ক",
     footer_popular_categories: "জনপ্রিয় ক্যাটাগরি",
-    footer_contact_us: "যোগাযোগ করুন"
+    footer_contact_us: "যোগাযোগ করুন",
+    // Wishlist translations
+    wishlist_title: "আপনার ইচ্ছেতালিকা",
+    wishlist_empty: "আপনার ইচ্ছেতালিকাটি সম্পূর্ণ খালি!",
+    wishlist_empty_desc: "হোমপেজ থেকে আপনার পছন্দের পণ্যের ওপর থাকা লাভ আইকনে ক্লিক করে এখানে যুক্ত করতে পারেন।",
+    wishlist_total: "মোট প্রোডাক্ট:"
   }
 };
 
