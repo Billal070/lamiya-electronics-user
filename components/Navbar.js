@@ -89,11 +89,11 @@ export default function Navbar() {
 
           {/* Right Side: Cart, Wishlist & Profile */}
           <div className="relative z-20 flex items-center space-x-2 md:space-x-3.5">
-            {/* Mobile Wishlist (Heart Icon) */}
+            {/* Mobile Wishlist (Heart Icon with standardized w-5 h-5 blue circle badge) */}
             <Link href="/wishlist" className="relative p-1 text-brandBlue hover:text-brandOrange transition-all md:hidden">
               <Heart size={22} className={wishlist.length > 0 ? 'text-brandOrange fill-brandOrange' : ''} />
               {wishlist.length > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-brandBlue text-white text-[9px] font-bold rounded-full w-4.5 h-4.5 flex items-center justify-center shadow-sm">
+                <span className="absolute -top-1.5 -right-1.5 bg-brandBlue text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-sm">
                   {wishlist.length}
                 </span>
               )}
@@ -198,13 +198,14 @@ export default function Navbar() {
 
         {/* Drawer Scrollable Content */}
         <div className="flex-grow overflow-y-auto p-5 space-y-6">
+          
           {/* Section A: Quick Links */}
           <div className="space-y-2">
             <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 border-b pb-1">Quick Links</h4>
             <Link 
               href="/" 
               onClick={() => setIsMenuOpen(false)}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold text-brandDark hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold text-brandDark hover:bg-gray-50 transition-colors"
             >
               {t('nav_home')}
             </Link>
