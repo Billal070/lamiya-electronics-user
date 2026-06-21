@@ -1,14 +1,16 @@
 'use client';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { ShoppingCart, Search, User, Menu, X } from 'lucide-react';
+import { ShoppingCart, Search, User, Menu, X, Heart } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabase';
 import { useSettings } from '../context/SettingsContext';
 
 export default function Navbar() {
   const { cart } = useCart();
+  const { wishlist } = useWishlist();
   const [searchQuery, setSearchQuery] = useState('');
   const [user, setUser] = useState(null);
   const [imgError, setImgError] = useState(false);
@@ -71,7 +73,7 @@ export default function Navbar() {
 
           {/* Absolute Centered Logo */}
           <div className="absolute left-1/2 -translate-x-1/2 z-10 flex items-center justify-center overflow-hidden">
-            <Link href="/" className="flex items-center justify-center">
+            <Link href="/">
               {!imgError && LOGO_IMAGE_URL ? (
                 <img 
                   src={LOGO_IMAGE_URL} 
@@ -85,10 +87,21 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Right Side: Cart & Profile */}
-          <div className="relative z-20 flex items-center space-x-3.5">
+          {/* Right Side: Cart, Wishlist & Profile */}
+          <div className="relative z-20 flex items-center space-x-2 md:space-x-3.5">
+            {/* Mobile Wishlist (Heart Icon) */}
+            <Link href="/wishlist" className="relative p-1 text-brandBlue hover:text-brandOrange transition-all md:hidden">
+              <Heart size={22} className={wishlist.length > 0 ? 'text-brandOrange fill-brandOrange' : ''} />
+              {wishlist.length > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-brandBlue text-white text-[9px] font-bold rounded-full w-4.5 h-4.5 flex items-center justify-center shadow-sm">
+                  {wishlist.length}
+                </span>
+              )}
+            </Link>
+
+            {/* Mobile Cart */}
             <Link href="/cart" className="relative p-1 text-brandBlue hover:text-brandOrange transition-all">
-              <ShoppingCart size={24} />
+              <ShoppingCart size={22} />
               {totalItems > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 bg-brandOrange text-brandBlue text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border border-white shadow-sm">
                   {totalItems}
@@ -96,21 +109,33 @@ export default function Navbar() {
               )}
             </Link>
 
-            {/* Desktop Profile */}
-            {user ? (
-              <Link href="/profile" className="flex items-center gap-1.5 text-sm font-bold text-brandBlue hover:text-brandOrange transition-colors border-l pl-4 border-gray-200 hidden md:flex">
-                <User size={20} />
-                <span>{user.user_metadata?.full_name || t('nav_profile')}</span>
+            {/* Desktop Utilities */}
+            <div className="hidden md:flex items-center space-x-6">
+              {/* Desktop Wishlist */}
+              <Link href="/wishlist" className="relative p-2 text-brandBlue hover:text-brandOrange transition-colors flex items-center gap-1">
+                <Heart size={24} className={wishlist.length > 0 ? 'text-red-500 fill-red-500' : ''} />
+                {wishlist.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-brandOrange text-brandBlue text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white shadow-sm">
+                    {wishlist.length}
+                  </span>
+                )}
               </Link>
-            ) : (
-              <Link href="/login" className="flex items-center gap-1.5 text-sm font-bold text-brandBlue hover:text-brandOrange transition-colors border-l pl-4 border-gray-200 hidden md:flex">
-                <User size={20} />
-                <span>{t('nav_login')}</span>
-              </Link>
-            )}
+
+              {user ? (
+                <Link href="/profile" className="flex items-center gap-1.5 text-sm font-bold text-brandBlue hover:text-brandOrange transition-colors border-l pl-4 border-gray-200">
+                  <User size={20} />
+                  <span>{user.user_metadata?.full_name || t('nav_profile')}</span>
+                </Link>
+              ) : (
+                <Link href="/login" className="flex items-center gap-1.5 text-sm font-bold text-brandBlue hover:text-brandOrange transition-colors border-l pl-4 border-gray-200">
+                  <User size={20} />
+                  <span>{t('nav_login')}</span>
+                </Link>
+              )}
+            </div>
 
             {/* Mobile Profile Icon */}
-            <div className="md:hidden flex items-center">
+            <div className="md:hidden flex items-center pl-1">
               {user ? (
                 <Link href="/profile" className="text-brandBlue">
                   <User size={24} />
@@ -173,16 +198,22 @@ export default function Navbar() {
 
         {/* Drawer Scrollable Content */}
         <div className="flex-grow overflow-y-auto p-5 space-y-6">
-          
           {/* Section A: Quick Links */}
           <div className="space-y-2">
             <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 border-b pb-1">Quick Links</h4>
             <Link 
               href="/" 
               onClick={() => setIsMenuOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold text-brandDark hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold text-brandDark hover:bg-gray-50 transition-colors"
             >
               {t('nav_home')}
+            </Link>
+            <Link 
+              href="/wishlist" 
+              onClick={() => setIsMenuOpen(false)}
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold text-brandDark hover:bg-gray-50 transition-colors"
+            >
+              Wishlist ({wishlist.length})
             </Link>
             <Link 
               href="/cart" 
