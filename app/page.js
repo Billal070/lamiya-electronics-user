@@ -31,20 +31,33 @@ function HomeContent() {
     }
   }
 
-  async function fetchProducts() {
+ async function fetchProducts() {
     setLoading(true);
     let query;
 
     if (selectedCategory) {
       query = supabase
         .from('products')
-        .select('*, categories!inner(name, slug)')
+        .select('*, categories!inner(name, slug), reviews(rating)')
         .eq('categories.slug', selectedCategory);
     } else {
       query = supabase
         .from('products')
-        .select('*, categories(name, slug)');
+        .select('*, categories(name, slug), reviews(rating)');
     }
+
+    if (searchQuery) {
+      query = query.ilike('name', `%${searchQuery}%`);
+    }
+
+    const { data, error } = await query;
+    if (!error && data) {
+      setProducts(data);
+    } else {
+      console.error('প্রোডাক্ট লোড করার সময় ভুল হয়েছে:', error);
+    }
+    setLoading(false);
+  }
 
     if (searchQuery) {
       query = query.ilike('name', `%${searchQuery}%`);
