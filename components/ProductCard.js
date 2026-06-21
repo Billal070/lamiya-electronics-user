@@ -10,10 +10,13 @@ export default function ProductCard({ product }) {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { t } = useSettings();
   
-  const hasDiscount = product.discount_price && product.discount_price < product.price;
-  const currentPrice = hasDiscount ? product.discount_price : product.price;
+  // স্ট্রিং বা টেক্সট বাগকে দূর করতে গাণিতিক সংখ্যায় রূপান্তর
+  const originalPrice = Number(product.price);
+  const discountPrice = Number(product.discount_price);
+  const hasDiscount = discountPrice > 0 && discountPrice < originalPrice;
+  
   const discountPercent = hasDiscount 
-    ? Math.round(((product.price - product.discount_price) / product.price) * 100) 
+    ? Math.round(((originalPrice - discountPrice) / originalPrice) * 100) 
     : 0;
 
   const imageUrl = (product.images && product.images.length > 0) 
@@ -30,7 +33,7 @@ export default function ProductCard({ product }) {
   return (
     <div className="bg-white rounded-xl shadow-sm hover:shadow-md border border-gray-100 overflow-hidden flex flex-col group relative transition-all duration-300">
       
-      {/* Dynamic Heart/Wishlist Button Overlay */}
+      {/* Wishlist Heart Button */}
       <button
         onClick={() => toggleWishlist(product)}
         className="absolute top-2.5 right-2.5 z-20 p-2 bg-white rounded-full shadow-md text-gray-400 hover:text-red-500 hover:scale-105 transition-all focus:outline-none"
@@ -90,11 +93,11 @@ export default function ProductCard({ product }) {
         <div className="mt-auto mb-3">
           {hasDiscount ? (
             <div className="flex items-baseline space-x-1.5">
-              <span className="text-sm md:text-lg font-extrabold text-brandOrange">৳{Number(product.discount_price).toLocaleString()}</span>
-              <span className="text-[10px] md:text-xs text-gray-400 line-through">৳{Number(product.price).toLocaleString()}</span>
+              <span className="text-sm md:text-lg font-extrabold text-brandOrange">৳{discountPrice.toLocaleString()}</span>
+              <span className="text-[10px] md:text-xs text-gray-400 line-through">৳{originalPrice.toLocaleString()}</span>
             </div>
           ) : (
-            <span className="text-sm md:text-lg font-extrabold text-brandOrange">৳{Number(product.price).toLocaleString()}</span>
+            <span className="text-sm md:text-lg font-extrabold text-brandOrange">৳{originalPrice.toLocaleString()}</span>
           )}
         </div>
 
