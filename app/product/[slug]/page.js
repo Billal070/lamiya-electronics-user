@@ -1,493 +1,314 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
-import { Trash2, Plus, Image as ImageIcon, Sparkles, X, Star } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
+import { supabase } from '../../../lib/supabase';
+import { useCart } from '../../../context/CartContext';
+import { ShoppingCart, CheckCircle2, AlertCircle, Star, MessageSquarePlus } from 'lucide-react';
 
-export default function Products() {
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [brands, setBrands] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [fetchLoading, setFetchLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
+export default function ProductDetails() {
+  const { slug } = useParams();
+  const { addToCart } = useCart();
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [activeImage, setActiveImage] = useState(null);
+  const [quantity, setQuantity] = useState(1);
 
-  // Form Fields
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
-  const [discountPrice, setDiscountPrice] = useState('');
-  const [stock, setStock] = useState('');
-  const [selectedCat, setSelectedCat] = useState('');
-  const [selectedBrand, setSelectedBrand] = useState('');
-  const [files, setFiles] = useState([]);
-  
-  // Specs: Array of Key-Value
-  const [specs, setSpecs] = useState([{ key: '', value: '' }]);
-
-  // Fake Review States (অ্যাডমিনদের জন্য কাস্টম রিভিউ ফিচার)
-  const [selectedProductForReview, setSelectedProductForReview] = useState(null);
-  const [fakeUserName, setFakeUserName] = useState('');
-  const [fakeRating, setFakeRating] = useState(5);
-  const [fakeComment, setFakeComment] = useState('');
-  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  // Review states
+  const [reviews, setReviews] = useState([]);
+  const [user, setUser] = useState(null);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    fetchProduct();
+  }, [slug]);
 
-  async function fetchData() {
-    setFetchLoading(true);
-    const { data: catData } = await supabase.from('categories').select('*').order('name');
-    if (catData) setCategories(catData);
+  async function fetchProduct() {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('products')
+      .select('*, categories(name)')
+      .eq('slug', slug)
+      .single();
 
-    const { data: brandData } = await supabase.from('brands').select('*').order('name');
-    if (brandData) setBrands(brandData);
-
-    const { data: prodData } = await supabase.from('products').select('*, categories(name)').order('created_at', { ascending: false });
-    if (prodData) setProducts(prodData);
+    if (!error && data) {
+      setProduct(data);
+      if (data.images && data.images.length > 0) {
+        setActiveImage(data.images[0]);
+      }
+      // Fetch Reviews for this product
+      fetchReviews(data.id);
+    }
     
-    setFetchLoading(false);
+    // Check if user is logged in
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+    });
+    
+    setLoading(false);
   }
 
-  const handleAddSpecRow = () => {
-    setSpecs([...specs, { key: '', value: '' }]);
-  };
+  async function fetchReviews(productId) {
+    const { data, error } = await supabase
+      .from('reviews')
+      .select('*')
+      .eq('product_id', productId)
+      .order('created_at', { ascending: false });
 
-  const handleRemoveSpecRow = (idx) => {
-    setSpecs(specs.filter((_, i) => i !== idx));
-  };
-
-  const handleSpecChange = (idx, field, val) => {
-    const updated = specs.map((s, i) => i === idx ? { ...s, [field]: val } : s);
-    setSpecs(updated);
-  };
-
-  // Submit Product Form
-  const handleAddProduct = async (e) => {
-    e.preventDefault();
-    if (!name || !price || !stock) return;
-    setLoading(true);
-
-    let imageUrls = [];
-
-    if (files.length > 0) {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}_${i}.${fileExt}`;
-        const { data, error } = await supabase.storage
-          .from('lamiya-electronics')
-          .upload(`products/${fileName}`, file);
-
-        if (!error && data) {
-          const { data: { publicUrl } } = supabase.storage
-            .from('lamiya-electronics')
-            .getPublicUrl(`products/${fileName}`);
-          imageUrls.push(publicUrl);
-        }
-      }
+    if (!error && data) {
+      setReviews(data);
     }
+  }
 
-    const specificationsObj = {};
-    specs.forEach((s) => {
-      if (s.key && s.value) {
-        specificationsObj[s.key] = s.value;
-      }
-    });
-
-    const slug = name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
-
-    const { error } = await supabase.from('products').insert({
-      name,
-      slug,
-      description,
-      price: Number(price),
-      discount_price: discountPrice ? Number(discountPrice) : 0,
-      stock: Number(stock),
-      category_id: selectedCat ? Number(selectedCat) : null,
-      brand_id: selectedBrand ? Number(selectedBrand) : null,
-      images: imageUrls,
-      specifications: specificationsObj
-    });
-
-    if (!error) {
-      setName('');
-      setDescription('');
-      setPrice('');
-      setDiscountPrice('');
-      setStock('');
-      setSelectedCat('');
-      setSelectedBrand('');
-      setFiles([]);
-      setSpecs([{ key: '', value: '' }]);
-      setShowForm(false);
-      fetchData();
-    } else {
-      alert('প্রোডাক্ট যুক্ত করতে ত্রুটি ঘটেছে: ' + error.message);
-    }
-    setLoading(false);
-  };
-
-  // Submit Fake Review from Admin Panel
-  const handleAddFakeReview = async (e) => {
+  const handleReviewSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedProductForReview || !fakeComment) return;
-    setReviewSubmitting(true);
+    if (!user || !comment) return;
+    setSubmittingReview(true);
 
     const { error } = await supabase
       .from('reviews')
       .insert({
-        product_id: selectedProductForReview.id,
-        user_name: fakeUserName || 'Anonymous Customer',
-        rating: Number(fakeRating),
-        comment: fakeComment
+        product_id: product.id,
+        user_id: user.id,
+        user_name: user.user_metadata?.full_name || 'Anonymous Customer',
+        rating: Number(rating),
+        comment: comment
       });
 
     if (!error) {
-      setFakeUserName('');
-      setFakeComment('');
-      setFakeRating(5);
-      setSelectedProductForReview(null);
-      alert('রিভিউ সফলভাবে যুক্ত হয়েছে এবং রেটিং আপডেট হয়েছে!');
+      setComment('');
+      setRating(5);
+      fetchReviews(product.id);
+      alert('আপনার রিভিউ সফলভাবে যুক্ত হয়েছে!');
     } else {
       alert('রিভিউ যুক্ত করতে সমস্যা হয়েছে: ' + error.message);
     }
-    setReviewSubmitting(false);
+    setSubmittingReview(false);
   };
 
-  const handleDeleteProduct = async (id, images) => {
-    if (!confirm('আপনি কি নিশ্চিতভাবে এই প্রোডাক্টটি ডিলিট করতে চান?')) return;
+  if (loading) {
+    return <div className="text-center py-20 font-bold text-gray-500">লোডিং হচ্ছে...</div>;
+  }
 
-    if (images && images.length > 0) {
-      const paths = images.map(imgUrl => imgUrl.split('/public/lamiya-electronics/')[1]).filter(Boolean);
-      if (paths.length > 0) {
-        await supabase.storage.from('lamiya-electronics').remove(paths);
-      }
-    }
+  if (!product) {
+    return <div className="text-center py-20 font-bold text-red-500">প্রোডাক্টটি খুঁজে পাওয়া যায়নি!</div>;
+  }
 
-    const { error } = await supabase.from('products').delete().eq('id', id);
-    if (!error) {
-      setProducts(prev => prev.filter(p => p.id !== id));
-    } else {
-      alert('ডিলিট করতে সমস্যা হয়েছে।');
-    }
-  };
+  const hasDiscount = product.discount_price && product.discount_price < product.price;
+  const currentPrice = hasDiscount ? product.discount_price : product.price;
+  const defaultPlaceholder = 'https://placehold.co/500x500/e2e8f0/1e293b?text=Lamiya+Electronics';
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">প্রোডাক্ট ম্যানেজমেন্ট</h1>
-          <p className="text-xs text-gray-500">ল্যামিয়া ইলেকট্রনিক্স-এর সামগ্রিক পণ্য ও কাস্টম রিভিউ ম্যানেজ করুন</p>
-        </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="bg-brandBlue text-white font-bold px-4 py-2.5 rounded-lg text-sm flex items-center gap-1.5 transition-all shadow"
-        >
-          {showForm ? <X size={16} /> : <Plus size={16} />}
-          {showForm ? 'প্যানেল বন্ধ করুন' : 'নতুন প্রোডাক্ট যুক্ত করুন'}
-        </button>
-      </div>
-
-      {/* Product Form */}
-      {showForm && (
-        <form onSubmit={handleAddProduct} className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
-          <h3 className="font-bold text-gray-800 border-b pb-2">নতুন পণ্যের বিবরণ দিন</h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-xs font-bold text-gray-500 mb-1">পণ্যের নাম</label>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brandBlue bg-gray-50"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-500 mb-1">স্টক পরিমাণ</label>
-              <input
-                type="number"
-                required
-                placeholder="যেমন: ১০"
-                value={stock}
-                onChange={(e) => setStock(e.target.value)}
-                className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brandBlue bg-gray-50"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-xs font-bold text-gray-500 mb-1">আসল মূল্য (৳)</label>
-              <input
-                type="number"
-                required
-                placeholder="যেমন: ১৫০০০"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brandBlue bg-gray-50"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-500 mb-1">ছাড় মূল্য (৳ - ঐচ্ছিক)</label>
-              <input
-                type="number"
-                placeholder="যেমন: ১৩৯৯৯"
-                value={discountPrice}
-                onChange={(e) => setDiscountPrice(e.target.value)}
-                className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brandBlue bg-gray-50"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-500 mb-1">ক্যাটাগরি সিলেক্ট করুন</label>
-              <select
-                value={selectedCat}
-                onChange={(e) => setSelectedCat(e.target.value)}
-                className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brandBlue bg-gray-50"
-              >
-                <option value="">সিলেক্ট করুন...</option>
-                {categories.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-xs font-bold text-gray-500 mb-1">ব্র্যান্ড সিলেক্ট করুন</label>
-              <select
-                value={selectedBrand}
-                onChange={(e) => setSelectedBrand(e.target.value)}
-                className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brandBlue bg-gray-50"
-              >
-                <option value="">সিলেক্ট করুন...</option>
-                {brands.map(b => (
-                  <option key={b.id} value={b.id}>{b.name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-500 mb-1">পণ্যের ছবি সিলেক্ট করুন</label>
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={(e) => setFiles(Array.from(e.target.files))}
-                className="w-full border rounded-lg px-3 py-1.5 text-xs bg-gray-50 focus:outline-none file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-brandBlue hover:file:bg-blue-100 cursor-pointer"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-gray-500 mb-1">পণ্যের বিবরণ (Description)</label>
-            <textarea
-              rows="3"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brandBlue bg-gray-50"
+    <div className="bg-white rounded-2xl p-6 md:p-8 border border-gray-100 shadow-sm space-y-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Product Gallery */}
+        <div className="space-y-4">
+          <div className="aspect-square bg-gray-50 border rounded-xl overflow-hidden flex items-center justify-center p-4">
+            <img
+              src={activeImage || defaultPlaceholder}
+              alt={product.name}
+              className="object-contain max-h-full max-w-full"
             />
           </div>
-
-          {/* Specs Builder */}
-          <div className="space-y-3">
-            <div className="flex justify-between items-center border-b pb-2">
-              <h4 className="font-bold text-sm text-gray-700 flex items-center gap-1.5"><Sparkles size={16} /> প্রোডাক্ট স্পেসিফিকেশন</h4>
-              <button
-                type="button"
-                onClick={handleAddSpecRow}
-                className="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-brandBlue font-bold text-xs rounded-lg transition-colors"
-              >
-                + রো যোগ করুন
-              </button>
-            </div>
-
-            <div className="space-y-2">
-              {specs.map((spec, idx) => (
-                <div key={idx} className="flex gap-4 items-center">
-                  <input
-                    type="text"
-                    placeholder="বৈশিষ্ট্যের নাম"
-                    value={spec.key}
-                    onChange={(e) => handleSpecChange(idx, 'key', e.target.value)}
-                    className="w-1/2 border rounded-lg px-4 py-2 text-xs focus:outline-none bg-gray-50"
-                  />
-                  <input
-                    type="text"
-                    placeholder="মান"
-                    value={spec.value}
-                    onChange={(e) => handleSpecChange(idx, 'value', e.target.value)}
-                    className="w-1/2 border rounded-lg px-4 py-2 text-xs focus:outline-none bg-gray-50"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveSpecRow(idx)}
-                    className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
+          {product.images && product.images.length > 1 && (
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {product.images.map((imgUrl, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setActiveImage(imgUrl)}
+                  className={`border rounded-lg p-1 w-16 h-16 flex-shrink-0 bg-white ${
+                    activeImage === imgUrl ? 'border-brandBlue ring-2 ring-blue-100' : 'border-gray-200'
+                  }`}
+                >
+                  <img src={imgUrl} alt="" className="object-contain w-full h-full" />
+                </button>
               ))}
             </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-brandBlue text-white font-extrabold rounded-lg hover:bg-opacity-95 transition-all text-xs flex items-center justify-center gap-2"
-          >
-            {loading ? 'প্রোডাক্ট আপলোড হচ্ছে...' : 'প্রোডাক্ট যোগ করুন'}
-          </button>
-        </form>
-      )}
-
-      {/* Products Grid */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="p-5 border-b bg-gray-50 flex justify-between items-center">
-          <h3 className="font-bold text-gray-800">সমস্ত প্রোডাক্টের তালিকা</h3>
-          <span className="text-xs font-bold text-brandBlue bg-blue-50 px-3 py-1.5 rounded-full">মোট প্রোডাক্ট: {products.length}</span>
+          )}
         </div>
 
-        {fetchLoading ? (
-          <div className="p-10 text-center text-gray-400 font-semibold">লোড হচ্ছে...</div>
-        ) : products.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-sm">
-              <thead>
-                <tr className="bg-gray-100 text-gray-500 font-bold border-b">
-                  <th className="px-6 py-3.5">ছবি ও নাম</th>
-                  <th className="px-6 py-3.5">মূল্য</th>
-                  <th className="px-6 py-3.5">স্টক</th>
-                  <th className="px-6 py-3.5">ক্যাটাগরি</th>
-                  <th className="px-6 py-3.5 text-center">অ্যাকশন</th>
-                </tr>
-              </thead>
+        {/* Product Info */}
+        <div className="space-y-6 flex flex-col justify-between">
+          <div className="space-y-4">
+            <span className="bg-brandBlue bg-opacity-10 text-brandBlue text-xs font-bold px-3 py-1.5 rounded-full">
+              {product.categories?.name || 'Electronics'}
+            </span>
+            <h1 className="text-2xl md:text-3xl font-bold text-brandDark">{product.name}</h1>
+
+            {/* Stock status - Responsive */}
+            <div className="flex items-center space-x-3 text-sm">
+              {product.stock > 0 ? (
+                <span className="text-green-600 font-bold flex items-center gap-1">
+                  <CheckCircle2 size={16} /> In stock
+                </span>
+              ) : (
+                <span className="text-red-600 font-bold flex items-center gap-1">
+                  <AlertCircle size={16} /> Out of Stock
+                </span>
+              )}
+            </div>
+
+            {/* Pricing */}
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+              {hasDiscount ? (
+                <div className="space-y-1">
+                  <div className="flex items-baseline space-x-3">
+                    <span className="text-3xl font-extrabold text-brandOrange">৳{Number(product.discount_price).toLocaleString()}</span>
+                    <span className="text-sm text-gray-400 line-through">৳{Number(product.price).toLocaleString()}</span>
+                  </div>
+                </div>
+              ) : (
+                <span className="text-3xl font-extrabold text-brandOrange">৳{Number(product.price).toLocaleString()}</span>
+              )}
+            </div>
+
+            <p className="text-sm text-gray-500 leading-relaxed">{product.description}</p>
+          </div>
+
+          <div className="space-y-4 pt-6 border-t border-gray-100">
+            {product.stock > 0 && (
+              <div className="flex items-center space-x-4">
+                <span className="text-sm font-semibold text-gray-500">পরিমাণ:</span>
+                <div className="flex border rounded-lg overflow-hidden w-32 bg-gray-50">
+                  <button
+                    onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                    className="px-3 py-1.5 hover:bg-gray-200 transition-colors font-bold"
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    value={quantity}
+                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                    className="w-full text-center bg-transparent focus:outline-none font-bold text-brandDark text-sm"
+                  />
+                  <button
+                    onClick={() => setQuantity(q => Math.min(product.stock, q + 1))}
+                    className="px-3 py-1.5 hover:bg-gray-200 transition-colors font-bold"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={() => addToCart(product, quantity)}
+              disabled={product.stock <= 0}
+              className={`w-full py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition-all shadow-md ${
+                product.stock > 0
+                  ? 'bg-brandBlue text-white hover:bg-opacity-95'
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
+              }`}
+            >
+              <ShoppingCart size={20} />
+              কার্টে যোগ করুন
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Specifications Section */}
+      {product.specifications && Object.keys(product.specifications).length > 0 && (
+        <div className="pt-8 border-t border-gray-100 space-y-4">
+          <h3 className="text-lg font-bold text-brandDark border-b pb-2">প্রোডাক্ট স্পেসিফিকেশন (Specifications)</h3>
+          <div className="overflow-hidden border border-gray-100 rounded-xl">
+            <table className="w-full text-left text-sm">
               <tbody>
-                {products.map((p) => (
-                  <tr key={p.id} className="border-b hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 flex items-center gap-4">
-                      {p.images && p.images.length > 0 ? (
-                        <img src={p.images[0]} alt="" className="w-12 h-12 rounded-lg border object-contain bg-gray-50" />
-                      ) : (
-                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400"><ImageIcon size={18} /></div>
-                      )}
-                      <div>
-                        <h4 className="font-bold text-gray-800 text-sm line-clamp-1 max-w-xs">{p.name}</h4>
-                        <p className="text-[10px] text-gray-400">ID: {p.id}</p>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      {p.discount_price && p.discount_price > 0 ? (
-                        <div className="flex flex-col">
-                          <span className="font-bold text-brandBlue">৳{p.discount_price.toLocaleString()}</span>
-                          <span className="text-xs text-gray-400 line-through">৳{p.price.toLocaleString()}</span>
-                        </div>
-                      ) : (
-                        <span className="font-bold text-brandBlue">৳{p.price.toLocaleString()}</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 font-semibold text-gray-600">{p.stock} টি</td>
-                    <td className="px-6 py-4 font-semibold text-gray-500 text-xs">{p.categories?.name || 'Electronics'}</td>
-                    <td className="px-6 py-4 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        {/* কাস্টম রিভিউ যোগ করার বাটন */}
-                        <button
-                          onClick={() => setSelectedProductForReview(p)}
-                          className="px-3 py-1.5 bg-amber-50 hover:bg-amber-500 text-amber-700 hover:text-white font-bold text-xs rounded-lg transition-all flex items-center gap-1"
-                        >
-                          <Star size={13} fill="currentColor" /> রিভিউ
-                        </button>
-                        
-                        <button
-                          onClick={() => handleDeleteProduct(p.id, p.images)}
-                          className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
+                {Object.entries(product.specifications).map(([key, value], idx) => (
+                  <tr key={key} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                    <td className="px-6 py-3 font-semibold text-brandDark w-1/3 border-r border-gray-100">{key}</td>
+                    <td className="px-6 py-3 text-gray-600">{value}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        ) : (
-          <div className="p-10 text-center text-gray-400 font-semibold">কোনো প্রোডাক্ট পাওয়া যায়নি।</div>
-        )}
-      </div>
-
-      {/* ======================================================== */}
-      {/* FAKE REVIEW CREATION MODAL WINDOW */}
-      {/* ======================================================== */}
-      {selectedProductForReview && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-xl border">
-            <div className="p-5 border-b flex justify-between items-center bg-gray-50">
-              <div>
-                <h3 className="font-bold text-gray-800">রিভিউ যোগ করুন:</h3>
-                <p className="text-xs text-gray-400 line-clamp-1 max-w-[250px]">{selectedProductForReview.name}</p>
-              </div>
-              <button 
-                onClick={() => setSelectedProductForReview(null)} 
-                className="p-1.5 bg-gray-200 hover:bg-red-500 hover:text-white rounded-full transition-all"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <form onSubmit={handleAddFakeReview} className="p-6 space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-500 mb-1">রিভিউয়ারের নাম (বসালে সেটিই শো করবে)</label>
-                <input
-                  type="text"
-                  placeholder="যেমন: আরিফ রহমান, সুমি আক্তার"
-                  value={fakeUserName}
-                  onChange={(e) => setFakeUserName(e.target.value)}
-                  className="w-full border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-brandBlue bg-gray-50"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-500 mb-1">রেটিং সিলেক্ট করুন (Star Rating)</label>
-                <select
-                  value={fakeRating}
-                  onChange={(e) => setFakeRating(e.target.value)}
-                  className="w-full border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-brandBlue bg-gray-50 text-gray-700"
-                >
-                  <option value="5">★★★★★ (5 Stars)</option>
-                  <option value="4">★★★★☆ (4 Stars)</option>
-                  <option value="3">★★★☆☆ (3 Stars)</option>
-                  <option value="2">★★☆☆☆ (2 Stars)</option>
-                  <option value="1">★☆☆☆☆ (1 Star)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-500 mb-1">রিভিউ কমেন্ট / মন্তব্য</label>
-                <textarea
-                  rows="3"
-                  required
-                  placeholder="যেমন: খুবই ভালো প্রোডাক্ট, ব্যাকআপ অনেক ভালো দিচ্ছে..."
-                  value={fakeComment}
-                  onChange={(e) => setFakeComment(e.target.value)}
-                  className="w-full border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-brandBlue bg-gray-50"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={reviewSubmitting}
-                className="w-full py-3 bg-brandBlue text-white font-bold rounded-xl hover:bg-opacity-95 transition-all text-xs flex items-center justify-center gap-2 shadow"
-              >
-                <Star size={14} fill="currentColor" />
-                {reviewSubmitting ? 'সেভ হচ্ছে...' : 'রিভিউ সংরক্ষণ করুন'}
-              </button>
-            </form>
-          </div>
         </div>
       )}
+
+      {/* REVIEWS & RATINGS SYSTEM */}
+      <div className="pt-8 border-t border-gray-100 space-y-6">
+        <h3 className="text-lg font-bold text-brandDark border-b pb-2 flex items-center gap-2">
+          <MessageSquarePlus size={20} className="text-brandBlue" />
+          গ্রাহকদের মতামত ও রেটিং ({reviews.length})
+        </h3>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Review Submission Form */}
+          <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 h-fit">
+            <h4 className="font-bold text-brandDark text-sm mb-3">একটি রিভিউ দিন</h4>
+            {user ? (
+              <form onSubmit={handleReviewSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 mb-1">রেটিং (Rating Stars)</label>
+                  <select
+                    value={rating}
+                    onChange={(e) => setRating(e.target.value)}
+                    className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brandBlue bg-white text-gray-700"
+                  >
+                    <option value="5">★★★★★ (5 Stars)</option>
+                    <option value="4">★★★★☆ (4 Stars)</option>
+                    <option value="3">★★★☆☆ (3 Stars)</option>
+                    <option value="2">★★☆☆☆ (2 Stars)</option>
+                    <option value="1">★☆☆☆☆ (1 Star)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 mb-1">আপনার মন্তব্য</label>
+                  <textarea
+                    rows="3"
+                    required
+                    placeholder="পণ্যটি সম্পর্কে আপনার অভিজ্ঞতা লিখুন..."
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brandBlue bg-white text-gray-700"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={submittingReview}
+                  className="w-full py-2 bg-brandBlue text-white text-xs font-bold rounded-lg hover:bg-opacity-95 transition-all"
+                >
+                  {submittingReview ? 'সংরক্ষণ হচ্ছে...' : 'রিভিউ সাবমিট করুন'}
+                </button>
+              </form>
+            ) : (
+              <div className="text-center py-4 space-y-2">
+                <p className="text-xs text-gray-400">রিভিউ দিতে প্রথমে আপনার কাস্টমার অ্যাকাউন্টে লগইন করুন।</p>
+                <a href="/login" className="inline-block py-2 px-4 bg-brandBlue text-white text-xs font-bold rounded-lg hover:bg-opacity-95">লগইন করুন</a>
+              </div>
+            )}
+          </div>
+
+          {/* Past Reviews List */}
+          <div className="lg:col-span-2 space-y-4">
+            {reviews.length > 0 ? (
+              <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2">
+                {reviews.map((rev) => (
+                  <div key={rev.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-1.5">
+                    <div className="flex justify-between items-center">
+                      <h5 className="font-bold text-sm text-brandDark">{rev.user_name}</h5>
+                      <span className="text-[10px] text-gray-400">{new Date(rev.created_at).toLocaleDateString('bn-BD')}</span>
+                    </div>
+                    <div className="flex items-center space-x-0.5">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <span key={star} className={`text-xs ${star <= rev.rating ? 'text-amber-400' : 'text-gray-200'}`}>★</span>
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-500 leading-relaxed">{rev.comment}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-gray-50 rounded-xl p-8 text-center text-gray-400 font-semibold text-sm">
+                এই প্রোডাক্টের জন্য এখনও কোনো রিভিউ দেওয়া হয়নি। প্রথম রিভিউটি আপনি দিন!
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
