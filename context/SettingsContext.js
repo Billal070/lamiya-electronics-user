@@ -15,6 +15,7 @@ const translations = {
     banner_subtitle: "Buy our advanced IPS systems and home appliances at attractive offers for low-voltage and uninterrupted power backup.",
     banner_badge: "Super Offer Dhamaka",
     banner_btn: "View Products",
+    // New Footer value props
     prop_quality: "Best Quality",
     prop_quality_desc: "100% Original Products",
     prop_support: "24/7 Support",
@@ -76,7 +77,22 @@ const translations = {
     wishlist_title: "My Wishlist",
     wishlist_empty: "Your wishlist is empty!",
     wishlist_empty_desc: "Click the heart icon on any product on the homepage to save it here.",
-    wishlist_total: "Total Products:"
+    wishlist_total: "Total Products:",
+    // Product Details translations
+    loading: "Loading...",
+    not_found: "Product not found!",
+    quantity: "Quantity:",
+    specs_title: "Product Specifications",
+    reviews_title: "Customer Reviews & Ratings",
+    give_review: "Give a Review",
+    rating_label: "Rating (Rating Stars)",
+    comment_label: "Your Comment",
+    comment_placeholder: "Write your experience about the product...",
+    submitting_review: "Saving...",
+    submit_review_btn: "Submit Review",
+    login_to_review: "Please login to your customer account first to leave a review.",
+    login_btn_review: "Login Now",
+    no_reviews_yet: "No reviews have been given for this product yet. Be the first to review!"
   },
   bn: {
     nav_home: "হোম",
@@ -150,7 +166,22 @@ const translations = {
     wishlist_title: "আপনার ইচ্ছেতালিকা",
     wishlist_empty: "আপনার ইচ্ছেতালিকাটি সম্পূর্ণ খালি!",
     wishlist_empty_desc: "হোমপেজ থেকে আপনার পছন্দের পণ্যের ওপর থাকা লাভ আইকনে ক্লিক করে এখানে যুক্ত করতে পারেন।",
-    wishlist_total: "মোট প্রোডাক্ট:"
+    wishlist_total: "মোট প্রোডাক্ট:",
+    // Product Details translations
+    loading: "লোডিং হচ্ছে...",
+    not_found: "প্রোডাক্টটি খুঁজে পাওয়া যায়নি!",
+    quantity: "পরিমাণ:",
+    specs_title: "প্রোডাক্ট স্পেসিফিকেশন",
+    reviews_title: "গ্রাহকদের মতামত ও রেটিং",
+    give_review: "একটি রিভিউ দিন",
+    rating_label: "রেটিং (Rating Stars)",
+    comment_label: "আপনার মন্তব্য",
+    comment_placeholder: "পণ্যটি সম্পর্কে আপনার অভিজ্ঞতা লিখুন...",
+    submitting_review: "সংরক্ষণ হচ্ছে...",
+    submit_review_btn: "রিভিউ সাবমিট করুন",
+    login_to_review: "রিভিউ দিতে প্রথমে আপনার কাস্টমার অ্যাকাউন্টে লগইন করুন।",
+    login_btn_review: "লগইন করুন",
+    no_reviews_yet: "এই প্রোডাক্টের জন্য এখনও কোনো রিভিউ দেওয়া হয়নি। প্রথম রিভিউটি আপনি দিন!"
   }
 };
 
