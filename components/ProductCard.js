@@ -1,11 +1,13 @@
 'use client';
 import Link from 'next/link';
-import { ShoppingCart, Star, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ShoppingCart, Star, CheckCircle2, AlertCircle, Heart } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 import { useSettings } from '../context/SettingsContext';
 
 export default function ProductCard({ product }) {
   const { addToCart } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
   const { t } = useSettings();
   
   const hasDiscount = product.discount_price && product.discount_price < product.price;
@@ -18,14 +20,24 @@ export default function ProductCard({ product }) {
     ? product.images[0] 
     : 'https://placehold.co/300x300/e2e8f0/1e293b?text=Lamiya+Electronics';
 
-  // ডাইনামিক এভারেজ স্টার রেটিং হিসাব করা
   const ratings = product.reviews || [];
   const avgRating = ratings.length > 0 
     ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length 
-    : 5; // কোনো রিভিউ না থাকলে ডিফল্ট ৫ স্টার দেখাবে
+    : 5;
+
+  const isLiked = isInWishlist(product.id);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm hover:shadow-md border border-gray-100 overflow-hidden flex flex-col group transition-all duration-300">
+    <div className="bg-white rounded-xl shadow-sm hover:shadow-md border border-gray-100 overflow-hidden flex flex-col group relative transition-all duration-300">
+      
+      {/* Dynamic Heart/Wishlist Button Overlay */}
+      <button
+        onClick={() => toggleWishlist(product)}
+        className="absolute top-2.5 right-2.5 z-20 p-2 bg-white rounded-full shadow-md text-gray-400 hover:text-red-500 hover:scale-105 transition-all focus:outline-none"
+      >
+        <Heart size={16} className={isLiked ? 'text-red-500 fill-red-500' : 'text-gray-400'} />
+      </button>
+
       <Link href={`/product/${product.slug}`} className="relative block overflow-hidden aspect-square bg-gray-50">
         <img
           src={imageUrl}
@@ -33,7 +45,7 @@ export default function ProductCard({ product }) {
           className="object-contain w-full h-full p-2 md:p-4 group-hover:scale-105 transition-transform duration-300"
         />
         {hasDiscount && (
-          <span className="absolute top-1.5 left-1.5 bg-brandOrange text-brandBlue text-[9px] md:text-xs font-bold px-1.5 py-0.5 rounded">
+          <span className="absolute top-2 left-2 bg-brandOrange text-brandBlue text-[9px] md:text-xs font-bold px-1.5 py-0.5 rounded">
             {discountPercent}% {t('off')}
           </span>
         )}
@@ -45,17 +57,15 @@ export default function ProductCard({ product }) {
       </Link>
 
       <div className="p-3 md:p-4 flex flex-col flex-grow space-y-1.5">
-        {/* Category Name */}
         <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">
           {product.categories?.name || 'Electronics'}
         </span>
         
-        {/* Product Title (Perfect alignment) */}
         <Link href={`/product/${product.slug}`} className="font-bold text-brandBlue hover:text-brandOrange line-clamp-2 text-xs md:text-base leading-tight mb-2 h-8 md:h-10">
           {product.name}
         </Link>
 
-        {/* Rating Stars (ডাইনামিক স্টার রেটিং) */}
+        {/* Rating Stars */}
         <div className="flex items-center space-x-0.5">
           {[1, 2, 3, 4, 5].map((star) => (
             <span key={star} className={`text-xs ${star <= Math.round(avgRating) ? 'text-amber-400 font-bold' : 'text-gray-200'}`}>★</span>
@@ -63,7 +73,7 @@ export default function ProductCard({ product }) {
           <span className="text-[10px] text-gray-400 font-bold">({ratings.length})</span>
         </div>
 
-        {/* Stock Status - সবুজ চেক বা লাল ক্রস */}
+        {/* Stock Status */}
         <div className="flex items-center space-x-1 text-xs">
           {product.stock > 0 ? (
             <span className="text-green-600 font-bold flex items-center gap-1">
@@ -76,7 +86,7 @@ export default function ProductCard({ product }) {
           )}
         </div>
 
-        {/* Pricing - পিসি ও মোবাইলে এক সমান ব্র্যান্ড অরেঞ্জ */}
+        {/* Pricing */}
         <div className="mt-auto mb-3">
           {hasDiscount ? (
             <div className="flex items-baseline space-x-1.5">
