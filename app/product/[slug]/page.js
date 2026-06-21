@@ -40,13 +40,22 @@ export default function ProductDetails() {
 
   useEffect(() => {
     fetchProduct();
-    // ৫ থেকে ১৮ জনের মধ্যে র্যান্ডম ভিউয়ার জেনারেট করা
-    setViewersCount(Math.floor(Math.random() * (18 - 5 + 1)) + 5);
-    
     if (typeof window !== 'undefined') {
       setShareUrl(window.location.href);
     }
   }, [slug]);
+
+  // প্রোডাক্ট লোড হওয়ার পর প্রাকৃতিকভাবে রিয়েল-টাইম ভিউয়ার হিসাব করা
+  useEffect(() => {
+    if (product) {
+      const baseId = Number(product.id) || 1;
+      const currentMinute = new Date().getMinutes();
+      
+      // ৫ থেকে ১৫ এর মধ্যে একটি সংখ্যা যা সময়ের মিনিটের সাথে মৃদু পরিবর্তন হবে
+      const calculatedViewers = 5 + ((baseId + currentMinute) % 11);
+      setViewersCount(calculatedViewers);
+    }
+  }, [product]);
 
   async function fetchProduct() {
     setLoading(true);
