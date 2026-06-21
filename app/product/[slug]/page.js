@@ -34,7 +34,7 @@ export default function ProductDetails() {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
 
-  // Conversion Boosters states (র্যান্ডম ভিউয়ার ও সোশ্যাল শেয়ার লিংক)
+  // Conversion Boosters states
   const [viewersCount, setViewersCount] = useState(10);
   const [shareUrl, setShareUrl] = useState('');
 
@@ -45,13 +45,11 @@ export default function ProductDetails() {
     }
   }, [slug]);
 
-  // প্রোডাক্ট লোড হওয়ার পর প্রাকৃতিকভাবে রিয়েল-টাইম ভিউয়ার হিসাব করা
+  // ডাইনামিক রিয়েল-টাইম ভিউয়ার হিসাব
   useEffect(() => {
     if (product) {
       const baseId = Number(product.id) || 1;
       const currentMinute = new Date().getMinutes();
-      
-      // ৫ থেকে ১৫ এর মধ্যে একটি সংখ্যা যা সময়ের মিনিটের সাথে মৃদু পরিবর্তন হবে
       const calculatedViewers = 5 + ((baseId + currentMinute) % 11);
       setViewersCount(calculatedViewers);
     }
@@ -118,7 +116,6 @@ export default function ProductDetails() {
     setSubmittingReview(false);
   };
 
-  // ১ ক্লিকে অর্ডার করে কার্ট পেজে নিয়ে যাওয়ার লজিক (Buy Now)
   const handleBuyNow = () => {
     addToCart(product, quantity);
     router.push('/cart');
@@ -164,8 +161,6 @@ export default function ProductDetails() {
         
         {/* Left Side: Product Gallery & Badges */}
         <div className="space-y-4 relative">
-          
-          {/* Discount Badge Overlay (Brand Orange) */}
           {hasDiscount && (
             <span className="absolute top-4 right-4 z-20 bg-brandOrange text-brandBlue text-xs font-extrabold px-3 py-1.5 rounded-full shadow-md select-none">
               -{discountPercent}%
@@ -178,8 +173,6 @@ export default function ProductDetails() {
               alt={product.name}
               className="object-contain max-h-full max-w-full"
             />
-            
-            {/* Zoom Icon Overlay at Bottom Left */}
             <button className="absolute bottom-4 left-4 p-2.5 bg-white rounded-full shadow-md text-gray-400 hover:text-brandBlue transition-all">
               <Maximize2 size={16} />
             </button>
@@ -202,12 +195,12 @@ export default function ProductDetails() {
           )}
         </div>
 
-        {/* Right Side: Professional Product Information Panel */}
+        {/* Right Side: Product Information Panel */}
         <div className="space-y-5 flex flex-col justify-between">
           <div className="space-y-4">
             <h1 className="text-xl md:text-3xl font-bold text-brandBlue leading-tight">{product.name}</h1>
 
-            {/* Ratings Header block */}
+            {/* Ratings Header */}
             <div className="flex items-center space-x-2 text-xs md:text-sm">
               <div className="flex items-center space-x-0.5">
                 {[1, 2, 3, 4, 5].map((star) => (
@@ -217,11 +210,11 @@ export default function ProductDetails() {
               <span className="text-gray-400 font-semibold select-none">({reviews.length} customer reviews)</span>
             </div>
 
-            {/* Pricing Section (Brand Colors - Standard Display) */}
+            {/* Pricing Section (Strikethrough Price made Larger for Pro Look) */}
             <div className="border-y py-4 border-gray-100 flex items-center space-x-4">
               {hasDiscount ? (
                 <div className="flex items-baseline space-x-3.5">
-                  <span className="text-sm md:text-xs text-gray-400 line-through font-semibold">৳{originalPrice.toLocaleString()}</span>
+                  <span className="text-base md:text-lg text-gray-400 line-through font-bold">৳{originalPrice.toLocaleString()}</span>
                   <span className="text-2xl md:text-3xl font-extrabold text-brandOrange">৳{discountPrice.toLocaleString()}</span>
                 </div>
               ) : (
@@ -229,17 +222,28 @@ export default function ProductDetails() {
               )}
             </div>
 
-            {/* Quick Specifications list dynamically populated */}
-            {product.specifications && Object.keys(product.specifications).length > 0 && (
-              <div className="space-y-1.5 pt-1">
-                {Object.entries(product.specifications).slice(0, 4).map(([key, value]) => (
-                  <div key={key} className="text-xs text-gray-500 flex gap-1">
-                    <span className="font-bold text-gray-600">{key}:</span>
-                    <span>{value}</span>
+            {/* Dynamic Key Features Bullet Points */}
+            <div className="space-y-2 pt-1">
+              {product.key_features && product.key_features.length > 0 ? (
+                /* যদি অ্যাডমিন প্যানেল থেকে কাস্টম কুইক স্পেকস দেওয়া থাকে */
+                product.key_features.map((feature, idx) => (
+                  <div key={idx} className="text-xs md:text-sm text-gray-600 flex gap-2 items-center">
+                    <span className="w-1.5 h-1.5 rounded-full bg-brandOrange shrink-0"></span>
+                    <span className="font-semibold text-gray-700">{feature}</span>
                   </div>
-                ))}
-              </div>
-            )}
+                ))
+              ) : (
+                /* ব্যাকআপ লজিক: কাস্টম কুইক স্পেকস না থাকলে টেবিলের প্রথম ৪টি আইটেম দেখাবে */
+                product.specifications && Object.keys(product.specifications).length > 0 && (
+                  Object.entries(product.specifications).slice(0, 4).map(([key, value]) => (
+                    <div key={key} className="text-xs md:text-sm text-gray-500 flex gap-1">
+                      <span className="font-bold text-gray-600">{key}:</span>
+                      <span>{value}</span>
+                    </div>
+                  ))
+                )
+              )}
+            </div>
           </div>
 
           <div className="space-y-4 pt-5 border-t border-gray-100">
@@ -270,7 +274,7 @@ export default function ProductDetails() {
               </div>
             )}
 
-            {/* Dual Action Buttons: Add to Cart (Blue) & Buy Now (Orange) */}
+            {/* Action Buttons */}
             <div className="grid grid-cols-2 gap-4">
               <button
                 onClick={() => addToCart(product, quantity)}
@@ -298,9 +302,8 @@ export default function ProductDetails() {
               </button>
             </div>
 
-            {/* Wishlist & Social Sharing Panel */}
+            {/* Wishlist & Social Sharing */}
             <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4 text-xs select-none">
-              {/* Add to Wishlist toggle */}
               <button
                 onClick={() => toggleWishlist(product)}
                 className="flex items-center gap-1.5 text-gray-500 hover:text-red-500 font-bold transition-colors focus:outline-none"
@@ -309,7 +312,6 @@ export default function ProductDetails() {
                 <span>{isLiked ? 'Remove from wishlist' : 'Add to wishlist'}</span>
               </button>
 
-              {/* Dynamic Social Sharing Links */}
               <div className="flex items-center space-x-2">
                 <span className="font-bold text-gray-400">Share:</span>
                 <div className="flex items-center space-x-2">
@@ -352,8 +354,8 @@ export default function ProductDetails() {
               </div>
             </div>
 
-            {/* Real-time Viewer Counter (Soft Blue Theme) */}
-            <div className="bg-blue-50/50 border border-blue-100/50 p-3 rounded-lg flex items-center gap-2 text-xs text-brandBlue font-bold select-none animate-pulse">
+            {/* Real-time Viewer Counter */}
+            <div className="bg-blue-50/50 border border-blue-100/50 p-3 rounded-lg flex items-center gap-2 text-xs text-brandBlue font-bold select-none">
               <Eye size={16} />
               <span>{viewersCount} people watching this product right now!</span>
             </div>
