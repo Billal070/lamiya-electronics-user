@@ -31,7 +31,7 @@ function HomeContent() {
     }
   }
 
- async function fetchProducts() {
+  async function fetchProducts() {
     setLoading(true);
     let query;
 
@@ -45,19 +45,6 @@ function HomeContent() {
         .from('products')
         .select('*, categories(name, slug), reviews(rating)');
     }
-
-    if (searchQuery) {
-      query = query.ilike('name', `%${searchQuery}%`);
-    }
-
-    const { data, error } = await query;
-    if (!error && data) {
-      setProducts(data);
-    } else {
-      console.error('প্রোডাক্ট লোড করার সময় ভুল হয়েছে:', error);
-    }
-    setLoading(false);
-  }
 
     if (searchQuery) {
       query = query.ilike('name', `%${searchQuery}%`);
@@ -203,7 +190,7 @@ function HomeContent() {
         </div>
       </div>
 
-      {/* NEW BRAND VALUE PROPS AT THE VERY BOTTOM */}
+      {/* NEW BRAND VALUE PROPS AT THE VERY BOTTOM (ফুটারে প্রবেশের ঠিক আগে) */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-white p-4 md:p-6 rounded-xl border border-gray-100 shadow-sm">
         <div className="flex flex-col items-center text-center p-2">
           <BadgeCheck className="text-brandBlue mb-1.5" size={28} />
