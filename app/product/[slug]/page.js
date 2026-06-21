@@ -1,14 +1,21 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '../../../lib/supabase';
 import { useCart } from '../../../context/CartContext';
-import { ShoppingCart, CheckCircle2, AlertCircle, Star, MessageSquarePlus, X } from 'lucide-react';
+import { useWishlist } from '../../../context/WishlistContext';
 import { useSettings } from '../../../context/SettingsContext';
+import { 
+  ShoppingCart, CheckCircle2, AlertCircle, Star, 
+  MessageSquarePlus, X, Heart, Eye, Maximize2, 
+  Facebook, Twitter, Linkedin, Send, MessageCircle 
+} from 'lucide-react';
 
 export default function ProductDetails() {
   const { slug } = useParams();
+  const router = useRouter();
   const { addToCart } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
   const { lang, t } = useSettings();
   
   const [product, setProduct] = useState(null);
@@ -25,10 +32,20 @@ export default function ProductDetails() {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
-  const [sortBy, setSortBy] = useState('newest'); 
+  const [sortBy, setSortBy] = useState('newest');
+
+  // Conversion Boosters states (র্যান্ডম ভিউয়ার ও সোশ্যাল শেয়ার লিংক)
+  const [viewersCount, setViewersCount] = useState(10);
+  const [shareUrl, setShareUrl] = useState('');
 
   useEffect(() => {
     fetchProduct();
+    // ৫ থেকে ১৮ জনের মধ্যে র্যান্ডম ভিউয়ার জেনারেট করা
+    setViewersCount(Math.floor(Math.random() * (18 - 5 + 1)) + 5);
+    
+    if (typeof window !== 'undefined') {
+      setShareUrl(window.location.href);
+    }
   }, [slug]);
 
   async function fetchProduct() {
@@ -92,6 +109,12 @@ export default function ProductDetails() {
     setSubmittingReview(false);
   };
 
+  // ১ ক্লিকে অর্ডার করে কার্ট পেজে নিয়ে যাওয়ার লজিক (Buy Now)
+  const handleBuyNow = () => {
+    addToCart(product, quantity);
+    router.push('/cart');
+  };
+
   if (loading) {
     return <div className="text-center py-20 font-bold text-gray-500">{t('loading')}</div>;
   }
@@ -100,19 +123,17 @@ export default function ProductDetails() {
     return <div className="text-center py-20 font-bold text-red-500">{t('not_found')}</div>;
   }
 
-  // গাণিতিক সংখ্যায় রূপান্তর
   const originalPrice = Number(product.price);
   const discountPrice = Number(product.discount_price);
   const hasDiscount = discountPrice > 0 && discountPrice < originalPrice;
+  const discountPercent = hasDiscount ? Math.round(((originalPrice - discountPrice) / originalPrice) * 100) : 0;
   
   const defaultPlaceholder = 'https://placehold.co/500x500/e2e8f0/1e293b?text=Lamiya+Electronics';
 
-  // Calculate Dynamic average rating
   const avgRating = reviews.length > 0 
     ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
     : '5.0';
 
-  // Calculate Star breakdown (5-star down to 1-star)
   const starCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
   reviews.forEach(r => {
     if (starCounts[r.rating] !== undefined) {
@@ -120,27 +141,43 @@ export default function ProductDetails() {
     }
   });
 
-  // Sort Reviews dynamically based on selected option
   const sortedReviews = [...reviews].sort((a, b) => {
     if (sortBy === 'highest') return b.rating - a.rating;
     if (sortBy === 'lowest') return a.rating - b.rating;
-    return new Date(b.created_at) - new Date(a.created_at); // Default: newest
+    return new Date(b.created_at) - new Date(a.created_at);
   });
 
+  const isLiked = isInWishlist(product.id);
+
   return (
-    <div className="bg-white rounded-2xl p-6 md:p-8 border border-gray-100 shadow-sm space-y-8">
+    <div className="bg-white rounded-2xl p-6 md:p-8 border border-gray-100 shadow-sm space-y-8 my-5">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Product Gallery */}
-        <div className="space-y-4">
-          <div className="aspect-square bg-gray-50 border rounded-xl overflow-hidden flex items-center justify-center p-4">
+        
+        {/* Left Side: Product Gallery & Badges */}
+        <div className="space-y-4 relative">
+          
+          {/* Discount Badge Overlay (Brand Orange) */}
+          {hasDiscount && (
+            <span className="absolute top-4 right-4 z-20 bg-brandOrange text-brandBlue text-xs font-extrabold px-3 py-1.5 rounded-full shadow-md select-none">
+              -{discountPercent}%
+            </span>
+          )}
+
+          <div className="relative aspect-square bg-gray-50 border rounded-xl overflow-hidden flex items-center justify-center p-4">
             <img
               src={activeImage || defaultPlaceholder}
               alt={product.name}
               className="object-contain max-h-full max-w-full"
             />
+            
+            {/* Zoom Icon Overlay at Bottom Left */}
+            <button className="absolute bottom-4 left-4 p-2.5 bg-white rounded-full shadow-md text-gray-400 hover:text-brandBlue transition-all">
+              <Maximize2 size={16} />
+            </button>
           </div>
+
           {product.images && product.images.length > 1 && (
-            <div className="flex gap-2 overflow-x-auto pb-2">
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
               {product.images.map((imgUrl, idx) => (
                 <button
                   key={idx}
@@ -156,52 +193,55 @@ export default function ProductDetails() {
           )}
         </div>
 
-        {/* Product Info */}
-        <div className="space-y-6 flex flex-col justify-between">
+        {/* Right Side: Professional Product Information Panel */}
+        <div className="space-y-5 flex flex-col justify-between">
           <div className="space-y-4">
-            <span className="bg-brandBlue bg-opacity-10 text-brandBlue text-xs font-bold px-3 py-1.5 rounded-full">
-              {product.categories?.name || 'Electronics'}
-            </span>
-            <h1 className="text-2xl md:text-3xl font-bold text-brandDark">{product.name}</h1>
+            <h1 className="text-xl md:text-3xl font-bold text-brandBlue leading-tight">{product.name}</h1>
 
-            {/* Stock status - Responsive */}
-            <div className="flex items-center space-x-3 text-sm">
-              {product.stock > 0 ? (
-                <span className="text-green-600 font-bold flex items-center gap-1">
-                  <CheckCircle2 size={16} /> In stock
-                </span>
-              ) : (
-                <span className="text-red-600 font-bold flex items-center gap-1">
-                  <AlertCircle size={16} /> Out of Stock
-                </span>
-              )}
+            {/* Ratings Header block */}
+            <div className="flex items-center space-x-2 text-xs md:text-sm">
+              <div className="flex items-center space-x-0.5">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <span key={star} className={`text-base ${star <= Math.round(avgRating) ? 'text-amber-400 font-bold' : 'text-gray-200'}`}>★</span>
+                ))}
+              </div>
+              <span className="text-gray-400 font-semibold select-none">({reviews.length} customer reviews)</span>
             </div>
 
-            {/* Pricing */}
-            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+            {/* Pricing Section (Brand Colors - Standard Display) */}
+            <div className="border-y py-4 border-gray-100 flex items-center space-x-4">
               {hasDiscount ? (
-                <div className="space-y-1">
-                  <div className="flex items-baseline space-x-3">
-                    <span className="text-3xl font-extrabold text-brandOrange">৳{discountPrice.toLocaleString()}</span>
-                    <span className="text-sm text-gray-400 line-through">৳{originalPrice.toLocaleString()}</span>
-                  </div>
+                <div className="flex items-baseline space-x-3.5">
+                  <span className="text-sm md:text-xs text-gray-400 line-through font-semibold">৳{originalPrice.toLocaleString()}</span>
+                  <span className="text-2xl md:text-3xl font-extrabold text-brandOrange">৳{discountPrice.toLocaleString()}</span>
                 </div>
               ) : (
-                <span className="text-3xl font-extrabold text-brandOrange">৳{originalPrice.toLocaleString()}</span>
+                <span className="text-2xl md:text-3xl font-extrabold text-brandOrange">৳{originalPrice.toLocaleString()}</span>
               )}
             </div>
 
-            <p className="text-sm text-gray-500 leading-relaxed">{product.description}</p>
+            {/* Quick Specifications list dynamically populated */}
+            {product.specifications && Object.keys(product.specifications).length > 0 && (
+              <div className="space-y-1.5 pt-1">
+                {Object.entries(product.specifications).slice(0, 4).map(([key, value]) => (
+                  <div key={key} className="text-xs text-gray-500 flex gap-1">
+                    <span className="font-bold text-gray-600">{key}:</span>
+                    <span>{value}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          <div className="space-y-4 pt-6 border-t border-gray-100">
+          <div className="space-y-4 pt-5 border-t border-gray-100">
+            {/* Quantity Selector */}
             {product.stock > 0 && (
               <div className="flex items-center space-x-4">
-                <span className="text-sm font-semibold text-gray-500">{t('quantity')}</span>
-                <div className="flex border rounded-lg overflow-hidden w-32 bg-gray-50">
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('quantity')}</span>
+                <div className="flex border rounded-lg overflow-hidden w-28 bg-gray-50">
                   <button
                     onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                    className="px-3 py-1.5 hover:bg-gray-200 transition-colors font-bold"
+                    className="px-3 py-1.5 hover:bg-gray-200 transition-colors font-bold text-sm"
                   >
                     -
                   </button>
@@ -213,7 +253,7 @@ export default function ProductDetails() {
                   />
                   <button
                     onClick={() => setQuantity(q => Math.min(product.stock, q + 1))}
-                    className="px-3 py-1.5 hover:bg-gray-200 transition-colors font-bold"
+                    className="px-3 py-1.5 hover:bg-gray-200 transition-colors font-bold text-sm"
                   >
                     +
                   </button>
@@ -221,18 +261,94 @@ export default function ProductDetails() {
               </div>
             )}
 
-            <button
-              onClick={() => addToCart(product, quantity)}
-              disabled={product.stock <= 0}
-              className={`w-full py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition-all shadow-md ${
-                product.stock > 0
-                  ? 'bg-brandBlue text-white hover:bg-opacity-95'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
-              }`}
-            >
-              <ShoppingCart size={20} />
-              {t('add_to_cart')}
-            </button>
+            {/* Dual Action Buttons: Add to Cart (Blue) & Buy Now (Orange) */}
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={() => addToCart(product, quantity)}
+                disabled={product.stock <= 0}
+                className={`py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md focus:outline-none ${
+                  product.stock > 0
+                    ? 'bg-brandBlue text-white hover:bg-opacity-95'
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
+                }`}
+              >
+                <ShoppingCart size={16} />
+                {t('add_to_cart')}
+              </button>
+
+              <button
+                onClick={handleBuyNow}
+                disabled={product.stock <= 0}
+                className={`py-3.5 rounded-xl font-extrabold text-sm flex items-center justify-center gap-2 transition-all shadow-md focus:outline-none ${
+                  product.stock > 0
+                    ? 'bg-brandOrange text-brandBlue hover:bg-opacity-95'
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
+                }`}
+              >
+                Buy Now
+              </button>
+            </div>
+
+            {/* Wishlist & Social Sharing Panel */}
+            <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4 text-xs select-none">
+              {/* Add to Wishlist toggle */}
+              <button
+                onClick={() => toggleWishlist(product)}
+                className="flex items-center gap-1.5 text-gray-500 hover:text-red-500 font-bold transition-colors focus:outline-none"
+              >
+                <Heart size={16} className={isLiked ? 'text-red-500 fill-red-500' : ''} />
+                <span>{isLiked ? 'Remove from wishlist' : 'Add to wishlist'}</span>
+              </button>
+
+              {/* Dynamic Social Sharing Links */}
+              <div className="flex items-center space-x-2">
+                <span className="font-bold text-gray-400">Share:</span>
+                <div className="flex items-center space-x-2">
+                  <a 
+                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`} 
+                    target="_blank" rel="noopener noreferrer"
+                    className="p-1.5 bg-gray-100 text-gray-500 hover:bg-blue-100 hover:text-blue-600 rounded-full transition-all"
+                  >
+                    <Facebook size={14} />
+                  </a>
+                  <a 
+                    href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(product.name)}`} 
+                    target="_blank" rel="noopener noreferrer"
+                    className="p-1.5 bg-gray-100 text-gray-500 hover:bg-slate-200 hover:text-black rounded-full transition-all"
+                  >
+                    <Twitter size={14} />
+                  </a>
+                  <a 
+                    href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`} 
+                    target="_blank" rel="noopener noreferrer"
+                    className="p-1.5 bg-gray-100 text-gray-500 hover:bg-blue-100 hover:text-blue-700 rounded-full transition-all"
+                  >
+                    <Linkedin size={14} />
+                  </a>
+                  <a 
+                    href={`https://api.whatsapp.com/send?text=${encodeURIComponent(product.name + ' ' + shareUrl)}`} 
+                    target="_blank" rel="noopener noreferrer"
+                    className="p-1.5 bg-gray-100 text-gray-500 hover:bg-green-100 hover:text-green-600 rounded-full transition-all"
+                  >
+                    <MessageCircle size={14} />
+                  </a>
+                  <a 
+                    href={`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(product.name)}`} 
+                    target="_blank" rel="noopener noreferrer"
+                    className="p-1.5 bg-gray-100 text-gray-500 hover:bg-blue-100 hover:text-blue-500 rounded-full transition-all"
+                  >
+                    <Send size={14} />
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Real-time Viewer Counter (Soft Blue Theme) */}
+            <div className="bg-blue-50/50 border border-blue-100/50 p-3 rounded-lg flex items-center gap-2 text-xs text-brandBlue font-bold select-none animate-pulse">
+              <Eye size={16} />
+              <span>{viewersCount} people watching this product right now!</span>
+            </div>
+
           </div>
         </div>
       </div>
@@ -288,7 +404,7 @@ export default function ProductDetails() {
             {product.description || 'No description available.'}
           </div>
         ) : (
-          /* B. REVIEWS & RATINGS VIEW (হুবহু স্ক্রিনশটের ডিজাইন) */
+          /* B. REVIEWS & RATINGS VIEW */
           <div className="space-y-10 animate-fade-in">
             {/* Top Stats Summary Block */}
             <div className="flex flex-col md:flex-row justify-between items-center gap-8 bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
@@ -381,7 +497,7 @@ export default function ProductDetails() {
                 )}
               </div>
 
-              {/* Right Side: Header + List (With Real Sorting) */}
+              {/* Right Side: Header + List */}
               <div className="lg:col-span-2 space-y-6">
                 {/* List Header with Sorting */}
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b pb-4">
