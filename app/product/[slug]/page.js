@@ -93,11 +93,11 @@ export default function ProductDetails() {
   };
 
   if (loading) {
-    return <div className="text-center py-20 font-bold text-gray-500">লোডিং হচ্ছে...</div>;
+    return <div className="text-center py-20 font-bold text-gray-500">{t('loading')}</div>;
   }
 
   if (!product) {
-    return <div className="text-center py-20 font-bold text-red-500">প্রোডাক্টটি খুঁজে পাওয়া যায়নি!</div>;
+    return <div className="text-center py-20 font-bold text-red-500">{t('not_found')}</div>;
   }
 
   const hasDiscount = product.discount_price && product.discount_price < product.price;
@@ -194,7 +194,7 @@ export default function ProductDetails() {
           <div className="space-y-4 pt-6 border-t border-gray-100">
             {product.stock > 0 && (
               <div className="flex items-center space-x-4">
-                <span className="text-sm font-semibold text-gray-500">পরিমাণ:</span>
+                <span className="text-sm font-semibold text-gray-500">{t('quantity')}</span>
                 <div className="flex border rounded-lg overflow-hidden w-32 bg-gray-50">
                   <button
                     onClick={() => setQuantity(q => Math.max(1, q - 1))}
@@ -228,7 +228,7 @@ export default function ProductDetails() {
               }`}
             >
               <ShoppingCart size={20} />
-              কার্টে যোগ করুন
+              {t('add_to_cart')}
             </button>
           </div>
         </div>
@@ -237,7 +237,7 @@ export default function ProductDetails() {
       {/* Specifications Section */}
       {product.specifications && Object.keys(product.specifications).length > 0 && (
         <div className="pt-8 border-t border-gray-100 space-y-4">
-          <h3 className="text-lg font-bold text-brandDark border-b pb-2">প্রোডাক্ট স্পেসিফিকেশন (Specifications)</h3>
+          <h3 className="text-lg font-bold text-brandDark border-b pb-2">{t('specs_title')}</h3>
           <div className="overflow-hidden border border-gray-100 rounded-xl">
             <table className="w-full text-left text-sm">
               <tbody>
@@ -253,9 +253,7 @@ export default function ProductDetails() {
         </div>
       )}
 
-      {/* ======================================================== */}
-      {/* TABS MENU SECTION (DESCRIPTION vs REVIEWS) */}
-      {/* ======================================================== */}
+      {/* REVIEWS & RATINGS SYSTEM */}
       <div className="pt-10 border-t border-gray-100 space-y-6">
         <div className="flex justify-center space-x-8 border-b pb-3 mb-6 select-none font-bold text-sm tracking-wider">
           <button
@@ -336,11 +334,11 @@ export default function ProductDetails() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Left Side: Submit Form */}
               <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 h-fit">
-                <h4 className="font-bold text-brandDark text-sm mb-3">একটি রিভিউ দিন</h4>
+                <h4 className="font-bold text-brandDark text-sm mb-3">{t('give_review')}</h4>
                 {user ? (
                   <form onSubmit={handleReviewSubmit} className="space-y-4">
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 mb-1">রেটিং (Rating Stars)</label>
+                      <label className="block text-xs font-bold text-gray-500 mb-1">{t('rating_label')}</label>
                       <select
                         value={rating}
                         onChange={(e) => setRating(e.target.value)}
@@ -354,11 +352,11 @@ export default function ProductDetails() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 mb-1">আপনার মন্তব্য</label>
+                      <label className="block text-xs font-bold text-gray-500 mb-1">{t('comment_label')}</label>
                       <textarea
                         rows="3"
                         required
-                        placeholder="পণ্যটি সম্পর্কে আপনার অভিজ্ঞতা লিখুন..."
+                        placeholder={t('comment_placeholder')}
                         value={comment}
                         onChange={(e) => setComment(e.target.value)}
                         className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brandBlue bg-white text-gray-700"
@@ -369,13 +367,13 @@ export default function ProductDetails() {
                       disabled={submittingReview}
                       className="w-full py-2 bg-brandBlue text-white text-xs font-bold rounded-lg hover:bg-opacity-95 transition-all"
                     >
-                      {submittingReview ? 'সংরক্ষণ হচ্ছে...' : 'রিভিউ সাবমিট করুন'}
+                      {submittingReview ? t('submitting_review') : t('submit_review_btn')}
                     </button>
                   </form>
                 ) : (
                   <div className="text-center py-4 space-y-2">
-                    <p className="text-xs text-gray-400">রিভিউ দিতে প্রথমে আপনার কাস্টমার অ্যাকাউন্টে লগইন করুন।</p>
-                    <a href="/login" className="inline-block py-2 px-4 bg-brandBlue text-white text-xs font-bold rounded-lg hover:bg-opacity-95">লগইন করুন</a>
+                    <p className="text-xs text-gray-400">{t('login_to_review')}</p>
+                    <a href="/login" className="inline-block py-2 px-4 bg-brandBlue text-white text-xs font-bold rounded-lg hover:bg-opacity-95">{t('login_btn_review')}</a>
                   </div>
                 )}
               </div>
@@ -385,7 +383,9 @@ export default function ProductDetails() {
                 {/* List Header with Sorting */}
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b pb-4">
                   <h4 className="font-bold text-sm text-gray-800">
-                    {reviews.length} reviews for {product.name}
+                    {lang === 'bn' 
+                      ? `${product.name} এর জন্য ${reviews.length} টি রিভিউ` 
+                      : `${reviews.length} reviews for ${product.name}`}
                   </h4>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-gray-400 font-bold">Sort:</span>
@@ -424,7 +424,7 @@ export default function ProductDetails() {
                   </div>
                 ) : (
                   <div className="bg-gray-50 rounded-xl p-8 text-center text-gray-400 font-semibold text-sm">
-                    এই প্রোডাক্টের জন্য এখনও কোনো রিভিউ দেওয়া হয়নি। প্রথম রিভিউটি আপনি দিন!
+                    {t('no_reviews_yet')}
                   </div>
                 )}
               </div>
