@@ -1,6 +1,7 @@
 import './globals.css';
 import { CartProvider } from '../context/CartContext';
 import { SettingsProvider } from '../context/SettingsContext';
+import { WishlistProvider } from '../context/WishlistContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
@@ -14,15 +15,17 @@ export default function RootLayout({ children }) {
     <html lang="bn">
       <body>
         <SettingsProvider>
-          <CartProvider>
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-grow max-w-7xl w-full mx-auto px-2.5 sm:px-4 py-4 md:py-8">
-                {children}
-              </main>
-              <Footer />
-            </div>
-          </CartProvider>
+          <WishlistProvider>
+            <CartProvider>
+              <div className="flex flex-col min-h-screen">
+                <Navbar />
+                <main className="flex-grow max-w-7xl w-full mx-auto px-2.5 sm:px-4 py-4 md:py-8">
+                  {children}
+                </main>
+                <Footer />
+              </div>
+            </CartProvider>
+          </WishlistProvider>
         </SettingsProvider>
       </body>
     </html>
