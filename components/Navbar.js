@@ -151,20 +151,21 @@ export default function Navbar() {
         onClick={() => setIsMenuOpen(false)}
       />
 
-      {/* Sliding Drawer Panel (LAMIYA টেক্সট রিমুভ করা হয়েছে) */}
+      {/* Sliding Drawer Panel */}
       <div 
-        className={`fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-white dark:bg-slate-900 z-50 shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col ${
+        className={`fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-white z-50 shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col ${
           isMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* Drawer Header - Cleaned up to remove hardcoded LAMIYA text */}
-        <div className="p-5 border-b dark:border-slate-800 flex justify-between items-center bg-gray-50 dark:bg-slate-950">
+        {/* Drawer Header */}
+        <div className="p-5 border-b flex justify-between items-center bg-gray-50">
           <div>
-            <span className="text-xs font-extrabold uppercase text-brandBlue dark:text-brandOrange tracking-wider">Navigation Menu</span>
+            <h3 className="font-extrabold text-brandBlue text-base leading-none">LAMIYA</h3>
+            <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Navigation Menu</span>
           </div>
           <button 
             onClick={() => setIsMenuOpen(false)}
-            className="p-1.5 bg-gray-200 dark:bg-slate-800 hover:bg-brandOrange hover:text-brandBlue rounded-full transition-all"
+            className="p-1.5 bg-gray-200 hover:bg-brandOrange hover:text-brandBlue rounded-full transition-all"
           >
             <X size={18} />
           </button>
@@ -175,18 +176,18 @@ export default function Navbar() {
           
           {/* Section A: Quick Links */}
           <div className="space-y-2">
-            <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 border-b pb-1 dark:border-slate-800">Quick Links</h4>
+            <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 border-b pb-1">Quick Links</h4>
             <Link 
               href="/" 
               onClick={() => setIsMenuOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold text-brandDark dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold text-brandDark hover:bg-gray-50 transition-colors"
             >
               {t('nav_home')}
             </Link>
             <Link 
               href="/cart" 
               onClick={() => setIsMenuOpen(false)}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold text-brandDark dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold text-brandDark hover:bg-gray-50 transition-colors"
             >
               {t('nav_cart')} ({totalItems})
             </Link>
@@ -194,7 +195,7 @@ export default function Navbar() {
               <Link 
                 href="/profile" 
                 onClick={() => setIsMenuOpen(false)}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold text-brandDark dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold text-brandDark hover:bg-gray-50 transition-colors"
               >
                 {t('nav_profile')}
               </Link>
@@ -202,7 +203,7 @@ export default function Navbar() {
               <Link 
                 href="/login" 
                 onClick={() => setIsMenuOpen(false)}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold text-brandDark dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold text-brandDark hover:bg-gray-50 transition-colors"
               >
                 {t('nav_login')}
               </Link>
@@ -211,12 +212,12 @@ export default function Navbar() {
 
           {/* Section B: Categories */}
           <div className="space-y-2">
-            <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 border-b pb-1 dark:border-slate-800">{t('cat_title')}</h4>
+            <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 border-b pb-1">{t('cat_title')}</h4>
             <div className="flex flex-col space-y-1">
               <Link 
                 href="/" 
                 onClick={() => setIsMenuOpen(false)}
-                className="px-3 py-2.5 rounded-lg text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                className="px-3 py-2.5 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
               >
                 {t('all_products')}
               </Link>
@@ -225,7 +226,7 @@ export default function Navbar() {
                   key={cat.id}
                   href={`/?category=${cat.slug}`}
                   onClick={() => setIsMenuOpen(false)}
-                  className="px-3 py-2.5 rounded-lg text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors capitalize"
+                  className="px-3 py-2.5 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors capitalize"
                 >
                   {cat.name}
                 </Link>
@@ -235,7 +236,7 @@ export default function Navbar() {
         </div>
 
         {/* Drawer Footer */}
-        <div className="p-5 border-t dark:border-slate-800 text-[10px] text-gray-400 text-center bg-gray-50 dark:bg-slate-950 select-none">
+        <div className="p-5 border-t text-[10px] text-gray-400 text-center bg-gray-50 select-none">
           <p>&copy; {new Date().getFullYear()} Lamiya Electronics & IPS</p>
         </div>
       </div>
