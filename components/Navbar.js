@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { ShoppingCart, Search, User, Menu, X, Heart } from 'lucide-react';
+import { ShoppingCart, Search, User, Menu, X, Heart, Sun, Battery, Cpu, Folder } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useRouter } from 'next/navigation';
@@ -53,6 +53,31 @@ export default function Navbar() {
 
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
 
+  // ডাইনামিক ক্যাটাগরি আইকন রেন্ডার
+  const renderCategoryIcon = (cat) => {
+    if (cat.image_url) {
+      return (
+        <img 
+          src={cat.image_url} 
+          alt="" 
+          className="w-5 h-5 object-contain shrink-0" 
+        />
+      );
+    }
+
+    const slug = cat.slug || '';
+    if (slug.includes('panel') || slug.includes('solar')) {
+      return <Sun size={18} className="shrink-0 text-gray-500" />;
+    }
+    if (slug.includes('battery')) {
+      return <Battery size={18} className="shrink-0 text-gray-500" />;
+    }
+    if (slug.includes('ips') || slug.includes('ups')) {
+      return <Cpu size={18} className="shrink-0 text-gray-500" />;
+    }
+    return <Folder size={18} className="shrink-0 text-gray-500" />;
+  };
+
   return (
     <header className="sticky top-0 z-50 bg-white border-b shadow-sm">
       <div className="max-w-7xl mx-auto px-4 py-3 md:py-4 flex flex-col gap-4">
@@ -89,7 +114,7 @@ export default function Navbar() {
 
           {/* Right Side: Cart, Wishlist & Profile */}
           <div className="relative z-20 flex items-center space-x-2 md:space-x-3.5">
-            {/* Mobile Wishlist (Heart Icon with standardized w-5 h-5 blue circle badge) */}
+            {/* Mobile Wishlist */}
             <Link href="/wishlist" className="relative p-1 text-brandBlue hover:text-brandOrange transition-all md:hidden">
               <Heart size={22} className={wishlist.length > 0 ? 'text-brandOrange fill-brandOrange' : ''} />
               {wishlist.length > 0 && (
@@ -242,25 +267,27 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Section B: Categories */}
+          {/* Section B: Categories (ডাইনামিক আইকন সহ) */}
           <div className="space-y-2">
             <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 border-b pb-1">{t('cat_title')}</h4>
             <div className="flex flex-col space-y-1">
               <Link 
                 href="/" 
                 onClick={() => setIsMenuOpen(false)}
-                className="px-3 py-2.5 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
               >
-                {t('all_products')}
+                <Folder size={18} className="shrink-0 text-gray-500" />
+                <span>{t('all_products')}</span>
               </Link>
               {categories.map((cat) => (
                 <Link
                   key={cat.id}
                   href={`/?category=${cat.slug}`}
                   onClick={() => setIsMenuOpen(false)}
-                  className="px-3 py-2.5 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors capitalize"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors capitalize"
                 >
-                  {cat.name}
+                  {renderCategoryIcon(cat)}
+                  <span>{cat.name}</span>
                 </Link>
               ))}
             </div>
