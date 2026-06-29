@@ -10,7 +10,7 @@ export default function Cart() {
   const { cart, updateQuantity, removeFromCart, clearCart } = useCart();
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const { t } = useSettings();
+  const { lang, t } = useSettings(); // lang ও t উভয়ই ডাইনামিক করা হলো
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -21,7 +21,6 @@ export default function Cart() {
   const [createdOrderId, setCreatedOrderId] = useState(null);
 
   useEffect(() => {
-    // Check if customer is logged in
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         setUser(user);
@@ -37,7 +36,7 @@ export default function Cart() {
     return total + price * item.quantity;
   }, 0);
 
-  // কাস্টম লজিক: ডেলিভারি চার্জ সম্পূর্ণ বাদ দিয়ে সর্বমোট মূল্য সাব-টোটালের সমান করা হয়েছে
+  // কাস্টম লজিক: ডেলিভারি চার্জ সম্পূর্ণ বাদ দিয়ে সর্বমোট মূল্য সাব-টোটালের সমান রাখা হয়েছে
   const grandTotal = subtotal; 
 
   const handlePlaceOrder = async (e) => {
@@ -50,7 +49,6 @@ export default function Cart() {
 
     setSubmitting(true);
     
-    // 1. Create order record
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
       .insert({
@@ -72,7 +70,6 @@ export default function Cart() {
       return;
     }
 
-    // 2. Create order items records
     const orderItemsToInsert = cart.map((item) => {
       const activePrice = item.discount_price && item.discount_price < item.price ? item.discount_price : item.price;
       return {
@@ -194,11 +191,26 @@ export default function Cart() {
 
       {/* Checkout or Login Form Section */}
       <div className="space-y-6">
-        {/* Price Summary (ডেলিভারি চার্জ সেকশন সম্পূর্ণ বাদ দেওয়া হয়েছে) */}
+        {/* Price Summary (ডেলিভারি চার্জের জায়গায় প্রফেশনাল আলোচনা সাপেক্ষ নোটিশ) */}
         <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
           <h3 className="text-lg font-bold text-brandDark border-b pb-2">{t('order_summary')}</h3>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between font-bold text-base text-brandDark">
+          <div className="space-y-3.5 text-sm">
+            {/* Subtotal Row */}
+            <div className="flex justify-between text-gray-500 font-semibold">
+              <span>{lang === 'bn' ? 'সাব-টোটাল:' : 'Subtotal:'}</span>
+              <span className="text-brandDark">৳{subtotal.toLocaleString()}</span>
+            </div>
+
+            {/* Dynamic Shipment/ডেলিভারি চার্জ Row */}
+            <div className="flex justify-between text-gray-500 font-semibold border-b pb-3 border-dashed">
+              <span>{lang === 'bn' ? 'ডেলিভারি চার্জ:' : 'Shipment:'}</span>
+              <span className="text-amber-500 font-extrabold text-xs md:text-sm">
+                {lang === 'bn' ? 'আলোচনা সাপেক্ষ' : 'Subject to Discuss'}
+              </span>
+            </div>
+
+            {/* Total Row */}
+            <div className="pt-1 flex justify-between font-extrabold text-base text-brandDark">
               <span>{t('total')}</span>
               <span className="text-brandBlue text-lg">৳{grandTotal.toLocaleString()}</span>
             </div>
@@ -274,7 +286,7 @@ export default function Cart() {
                 {submitting ? 'Processing...' : t('btn_place_order') + ' (৳' + grandTotal.toLocaleString() + ')'}
               </button>
 
-              {/* 🚨 নতুন সংযুক্ত স্থায়ী রেড সতর্কবার্তা (Warning Notice in Red Text with Alert Icon) */}
+              {/* স্থায়ী রেড সতর্কবার্তা */}
               <div className="mt-4 flex gap-2 items-start text-[11px] text-red-600 font-extrabold leading-relaxed bg-red-50/50 p-3 rounded-lg border border-red-100/35">
                 <AlertTriangle className="shrink-0 text-red-600 mt-0.5" size={15} />
                 <p>আপনার অর্ডারটি সম্পন্ন করুন । সম্পন্ন হয়ে গেলে আমাদের একজন প্রতিনিধি আপনার সাথে যোগাযোগ করবেন।</p>
