@@ -47,14 +47,14 @@ export default function Login() {
         setError(error.message);
         setLoading(false);
       } else {
-        // সুপাবেস স্বয়ংক্রিয়ভাবে লগইন করিয়ে দেওয়ায় আমরা সরাসরি নোটিশ দেখিয়ে প্রোফাইলে পাঠিয়ে দেব
-        setSuccessMsg(t('register_success_msg') || 'Account created successfully! Logging you in...');
+        // ডাইনামিক কি ব্যবহার না করে সরাসরি নিখুঁত ইংরেজি সাকসেস মেসেজ সেট করা
+        setSuccessMsg('Registration Successful! Logging you in...');
         
-        // ১ সেকেন্ডের একটি অতি ক্ষুদ্র বিরতি যাতে কাস্টমার নোটিশটি দেখতে পারেন
+        // ১ সেকেন্ডের বিরতির পর প্রোফাইলে রিডাইরেক্ট করা
         setTimeout(() => {
           router.push('/profile');
           router.refresh();
-        }, 1000);
+        }, 1200);
       }
     } else {
       // 2. SIGN IN (লগইন করা)
@@ -92,8 +92,9 @@ export default function Login() {
       )}
 
       {successMsg && (
-        <div className="bg-green-50 border border-green-100 text-green-700 p-3 rounded-lg flex items-start gap-2 text-xs font-bold animate-pulse">
-          <CheckCircle2 className="shrink-0" size={16} />
+        /* সফলতার মেসেজ বক্স: আইকন ও টেক্সট একদম মাঝখানে (Centered Column Alignment) */
+        <div className="bg-green-50 border border-green-100 text-green-700 p-5 rounded-xl flex flex-col items-center justify-center gap-2.5 text-center text-xs font-bold animate-pulse">
+          <CheckCircle2 className="text-green-600 shrink-0" size={24} />
           <span>{successMsg}</span>
         </div>
       )}
