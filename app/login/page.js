@@ -6,6 +6,7 @@ import { LogIn, UserPlus, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useSettings } from '../../context/SettingsContext';
 
 export default function Login() {
+  const { cart } = useCart || { cart: [] }; // Safe fallback
   const { t } = useSettings();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
@@ -139,7 +140,7 @@ export default function Login() {
 
         <button
           type="submit"
-          disabled={loading || reviewSubmitting}
+          disabled={loading}
           className="w-full py-3 bg-brandBlue text-white font-bold rounded-xl hover:bg-opacity-95 transition-all text-sm flex items-center justify-center gap-2 shadow"
         >
           {loading ? 'Processing...' : isSignUp ? 'Create Account' : 'Login Now'}
