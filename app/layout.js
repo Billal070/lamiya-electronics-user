@@ -4,7 +4,8 @@ import { SettingsProvider } from '../context/SettingsContext';
 import { WishlistProvider } from '../context/WishlistContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import WhatsAppButton from '../components/WhatsAppButton'; // নতুন ইমপোর্ট
+import WhatsAppButton from '../components/WhatsAppButton';
+import ScrollToTop from '../components/ScrollToTop'; // নতুন ইমপোর্ট
 
 export const metadata = {
   title: 'Lamiya Electronics & IPS - সেরা দামে আইপিএস ও ইলেকট্রনিক্স পণ্য',
@@ -24,7 +25,8 @@ export default function RootLayout({ children }) {
                   {children}
                 </main>
                 <Footer />
-                <WhatsAppButton /> {/* নতুন বাটন রেণ্ডার */}
+                <WhatsAppButton />
+                <ScrollToTop /> {/* নতুন বাটন রেন্ডার */}
               </div>
             </CartProvider>
           </WishlistProvider>
