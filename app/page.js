@@ -4,7 +4,10 @@ import { useSearchParams } from 'next/navigation';
 import { supabase } from '../lib/supabase';
 import ProductCard from '../components/ProductCard';
 import { useSettings } from '../context/SettingsContext';
-import { SlidersHorizontal, PackageOpen, BadgeCheck, Headphones, Truck, ShieldCheck } from 'lucide-react';
+import { 
+  SlidersHorizontal, PackageOpen, BadgeCheck, 
+  Headphones, Truck, ShieldCheck, Sun, Battery, Cpu, Folder 
+} from 'lucide-react';
 
 function HomeContent() {
   const [products, setProducts] = useState([]);
@@ -59,9 +62,37 @@ function HomeContent() {
     setLoading(false);
   }
 
+  // ডাইনামিক ক্যাটাগরি আইকন রেন্ডার করার ফাংশন
+  const renderCategoryIcon = (cat, isActive) => {
+    if (cat.image_url) {
+      return (
+        <img 
+          src={cat.image_url} 
+          alt="" 
+          className="w-5 h-5 object-contain shrink-0" 
+        />
+      );
+    }
+
+    // স্লাগ অনুযায়ী কাস্টম ব্যাকআপ ভেক্টর আইকন
+    const slug = cat.slug || '';
+    const iconClass = `shrink-0 ${isActive ? 'text-white' : 'text-gray-500'}`;
+
+    if (slug.includes('panel') || slug.includes('solar')) {
+      return <Sun size={18} className={iconClass} />;
+    }
+    if (slug.includes('battery')) {
+      return <Battery size={18} className={iconClass} />;
+    }
+    if (slug.includes('ips') || slug.includes('ups')) {
+      return <Cpu size={18} className={iconClass} />;
+    }
+    return <Folder size={18} className={iconClass} />;
+  };
+
   return (
     <div className="space-y-6 md:space-y-8">
-      {/* Hero Banner - শুধুমাত্র All Products বা মূল হোমপেজে থাকলেই দেখা যাবে */}
+      {/* Hero Banner */}
       {!selectedCategory && (
         <div className="bg-gradient-to-r from-brandBlue to-blue-900 rounded-2xl p-6 md:p-12 text-white flex flex-col md:flex-row justify-between items-center gap-6 shadow-sm transition-all duration-300">
           <div className="space-y-3 md:space-y-4 max-w-lg text-center md:text-left">
@@ -134,27 +165,32 @@ function HomeContent() {
             <div className="flex flex-col space-y-1">
               <a 
                 href="/" 
-                className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all ${
                   !selectedCategory 
-                    ? 'bg-brandBlue text-white' 
+                    ? 'bg-brandBlue text-white font-bold' 
                     : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
-                {t('all_products')}
+                <Folder size={18} className={!selectedCategory ? 'text-white' : 'text-gray-500'} />
+                <span>{t('all_products')}</span>
               </a>
-              {categories.map((cat) => (
-                <a
-                  key={cat.id}
-                  href={`/?category=${cat.slug}`}
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
-                    selectedCategory === cat.slug 
-                      ? 'bg-brandBlue text-white' 
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  {cat.name}
-                </a>
-              ))}
+              {categories.map((cat) => {
+                const isActive = selectedCategory === cat.slug;
+                return (
+                  <a
+                    key={cat.id}
+                    href={`/?category=${cat.slug}`}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                      isActive 
+                        ? 'bg-brandBlue text-white font-bold' 
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    {renderCategoryIcon(cat, isActive)}
+                    <span className="capitalize">{cat.name}</span>
+                  </a>
+                );
+              })}
             </div>
           </div>
         </div>
