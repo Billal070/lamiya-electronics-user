@@ -20,6 +20,10 @@ export default function Cart() {
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [createdOrderId, setCreatedOrderId] = useState(null);
 
+  // New States for Payment Information & Terms (নতুন পেমেন্ট ও শর্তাবলী স্টেট)
+  const [paymentMethod, setPaymentMethod] = useState('cod'); // 'cod' | 'online'
+  const [agreeTerms, setAgreeTerms] = useState(false);
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
@@ -41,6 +45,19 @@ export default function Cart() {
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
     if (cart.length === 0 || !user) return;
+    
+    // Safety check: Terms validation
+    if (!agreeTerms) {
+      alert(lang === 'bn' ? 'দয়া করে শর্তাবলীতে সম্মতি দিন।' : 'Please agree to the Terms & Conditions.');
+      return;
+    }
+
+    // Safety check: Payment method validation
+    if (paymentMethod !== 'cod') {
+      alert(lang === 'bn' ? 'অনলাইন পেমেন্ট বর্তমানে সাময়িকভাবে বন্ধ রয়েছে।' : 'Online Payment is temporarily offline.');
+      return;
+    }
+
     if (!name || !phone || !address) {
       alert('Required fields must be filled.');
       return;
@@ -48,6 +65,7 @@ export default function Cart() {
 
     setSubmitting(true);
     
+    // 1. Create order record
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
       .insert({
@@ -69,6 +87,7 @@ export default function Cart() {
       return;
     }
 
+    // 2. Create order items records
     const orderItemsToInsert = cart.map((item) => {
       const activePrice = item.discount_price && item.discount_price < item.price ? item.discount_price : item.price;
       return {
@@ -190,7 +209,7 @@ export default function Cart() {
 
       {/* Checkout or Login Form Section */}
       <div className="space-y-6">
-        {/* Price Summary (ডেলিভারি চার্জের জায়গায় প্রফেশনাল আলোচনা সাপেক্ষ নোটিশ) */}
+        {/* Price Summary */}
         <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
           <h3 className="text-lg font-bold text-brandDark border-b pb-2">{t('order_summary')}</h3>
           <div className="space-y-3.5 text-sm">
@@ -200,7 +219,7 @@ export default function Cart() {
               <span className="text-brandDark">৳{subtotal.toLocaleString()}</span>
             </div>
 
-            {/* Dynamic Shipment/ডেলিভারি চার্জ Row - কালার নীল এবং ফন্ট হালকা করা হলো */}
+            {/* Dynamic Shipment Row */}
             <div className="flex justify-between text-gray-500 font-semibold border-b pb-3 border-dashed">
               <span>{lang === 'bn' ? 'ডেলিভারি চার্জ:' : 'Shipment:'}</span>
               <span className="text-brandBlue font-semibold text-xs md:text-sm">
@@ -223,12 +242,12 @@ export default function Cart() {
           </div>
         ) : user ? (
           /* Checkout Form for Logged In User */
-          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-5">
             <div className="flex items-center gap-2 border-b pb-2 text-green-600">
               <UserCheck size={20} />
               <h3 className="text-lg font-bold text-brandDark">{t('delivery_info')}</h3>
             </div>
-            <form onSubmit={handlePlaceOrder} className="space-y-4">
+            <form onSubmit={handlePlaceOrder} className="space-y-5">
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-1">{t('label_name')}</label>
                 <input
@@ -272,20 +291,99 @@ export default function Cart() {
                 />
               </div>
 
-              <div className="bg-blue-50 border border-blue-100 p-3 rounded-lg flex gap-2 items-start text-xs text-blue-700 leading-relaxed">
-                <ShieldCheck className="shrink-0 text-brandBlue" size={16} />
-                <span>{t('cod_info')}</span>
+              {/* ======================================================== */}
+              {/* NEW PAYMENT INFORMATION SECTION (পেমেন্ট পদ্ধতি সেকশন) */}
+              {/* ======================================================== */}
+              <div className="pt-4 border-t border-gray-100 space-y-3">
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  {lang === 'bn' ? 'পেমেন্ট পদ্ধতি' : 'Payment Information'}
+                </h4>
+                
+                <div className="space-y-2">
+                  {/* Option 1: Cash on Delivery */}
+                  <label className="flex items-center gap-3 p-3 border rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
+                    <input
+                      type="radio"
+                      name="payment_method"
+                      value="cod"
+                      checked={paymentMethod === 'cod'}
+                      onChange={() => setPaymentMethod('cod')}
+                      className="w-4 h-4 text-brandBlue border-gray-300 focus:ring-brandBlue cursor-pointer"
+                    />
+                    <span className="text-xs font-bold text-gray-700">
+                      {lang === 'bn' ? 'ক্যাশ অন ডেলিভারি (Cash on delivery)' : 'Cash on delivery'}
+                    </span>
+                  </label>
+
+                  {/* Option 2: Pay Online */}
+                  <label className="flex items-center gap-3 p-3 border rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
+                    <input
+                      type="radio"
+                      name="payment_method"
+                      value="online"
+                      checked={paymentMethod === 'online'}
+                      onChange={() => setPaymentMethod('online')}
+                      className="w-4 h-4 text-brandBlue border-gray-300 focus:ring-brandBlue cursor-pointer"
+                    />
+                    <span className="text-xs font-bold text-gray-700">
+                      {lang === 'bn' ? 'অনলাইন পেমেন্ট (Pay Online)' : 'Pay Online'}
+                    </span>
+                  </label>
+                </div>
+
+                {/* Pay Online offline Warning Notice (বাবল নোটিশ) */}
+                {paymentMethod === 'online' && (
+                  <div className="bg-amber-50 border border-amber-200 p-3 rounded-xl flex gap-2 items-start text-xs text-amber-700 leading-relaxed animate-pulse">
+                    <AlertTriangle className="shrink-0 text-amber-500 mt-0.5" size={16} />
+                    <p>
+                      {lang === 'bn' 
+                        ? 'দুঃখিত, আমাদের অনলাইন পেমেন্ট সিস্টেমটি বর্তমানে সাময়িকভাবে বন্ধ আছে। দয়া করে ক্যাশ অন ডেলিভারি (Cash on delivery) সিলেক্ট করুন।' 
+                        : 'Online Payment is temporarily offline. Please select Cash on Delivery to place your order.'}
+                    </p>
+                  </div>
+                )}
               </div>
 
+              {/* ======================================================== */}
+              {/* NEW TERMS & CONDITIONS CHECKBOX (শর্তাবলী সম্মতি বক্স) */}
+              {/* ======================================================== */}
+              <div className="pt-4 border-t border-gray-100">
+                <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    required
+                    checked={agreeTerms}
+                    onChange={(e) => setAgreeTerms(e.target.checked)}
+                    className="mt-1 w-4 h-4 text-brandBlue border-gray-300 rounded focus:ring-brandBlue cursor-pointer"
+                  />
+                  <span className="text-xs text-gray-500 leading-relaxed font-semibold">
+                    {lang === 'bn' ? (
+                      <span>
+                        আমি ওয়েবসাইটের <span className="text-brandBlue underline font-bold">শর্তাবলী</span>, <span className="text-brandBlue underline font-bold">গোপনীয়তা নীতি</span>, এবং <span className="text-brandBlue underline font-bold">রিফান্ড নীতি</span> পড়েছি এবং সম্মতি দিচ্ছি *
+                      </span>
+                    ) : (
+                      <span>
+                        I have read and agree to the website <span className="text-brandBlue underline font-bold">Terms & Conditions</span>, <span className="text-brandBlue underline font-bold">Privacy Policy</span>, and <span className="text-brandBlue underline font-bold">Refund Policy</span> *
+                      </span>
+                    )}
+                  </span>
+                </                label>
+              </div>
+
+              {/* Submit Button (Disabled state and style customized) */}
               <button
                 type="submit"
-                disabled={submitting}
-                className="w-full py-3.5 bg-brandOrange text-brandBlue font-extrabold text-sm rounded-xl hover:bg-opacity-95 transition-all shadow"
+                disabled={submitting || !agreeTerms}
+                className={`w-full py-3.5 font-extrabold text-sm rounded-xl transition-all shadow focus:outline-none ${
+                  agreeTerms && !submitting
+                    ? 'bg-brandOrange text-brandBlue hover:bg-opacity-95 cursor-pointer'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
+                }`}
               >
                 {submitting ? 'Processing...' : t('btn_place_order') + ' (৳' + grandTotal.toLocaleString() + ')'}
               </button>
 
-              {/* اختیاری রেড সতর্কবার্তা */}
+              {/* স্থায়ী রেড সতর্কবার্তা */}
               <div className="mt-4 flex gap-2 items-start text-[11px] text-red-600 font-extrabold leading-relaxed bg-red-50/50 p-3 rounded-lg border border-red-100/35">
                 <AlertTriangle className="shrink-0 text-red-600 mt-0.5" size={15} />
                 <p>আপনার অর্ডারটি সম্পন্ন করুন । সম্পন্ন হয়ে গেলে আমাদের একজন প্রতিনিধি আপনার সাথে যোগাযোগ করবেন।</p>
