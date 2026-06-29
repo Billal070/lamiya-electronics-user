@@ -10,7 +10,7 @@ export default function Cart() {
   const { cart, updateQuantity, removeFromCart, clearCart } = useCart();
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const { lang, t } = useSettings(); // lang ও t উভয়ই ডাইনামিক করা হলো
+  const { lang, t } = useSettings();
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -36,7 +36,6 @@ export default function Cart() {
     return total + price * item.quantity;
   }, 0);
 
-  // কাস্টম লজিক: ডেলিভারি চার্জ সম্পূর্ণ বাদ দিয়ে সর্বমোট মূল্য সাব-টোটালের সমান রাখা হয়েছে
   const grandTotal = subtotal; 
 
   const handlePlaceOrder = async (e) => {
@@ -201,10 +200,10 @@ export default function Cart() {
               <span className="text-brandDark">৳{subtotal.toLocaleString()}</span>
             </div>
 
-            {/* Dynamic Shipment/ডেলিভারি চার্জ Row */}
+            {/* Dynamic Shipment/ডেলিভারি চার্জ Row - কালার নীল এবং ফন্ট হালকা করা হলো */}
             <div className="flex justify-between text-gray-500 font-semibold border-b pb-3 border-dashed">
               <span>{lang === 'bn' ? 'ডেলিভারি চার্জ:' : 'Shipment:'}</span>
-              <span className="text-amber-500 font-extrabold text-xs md:text-sm">
+              <span className="text-brandBlue font-semibold text-xs md:text-sm">
                 {lang === 'bn' ? 'আলোচনা সাপেক্ষ' : 'Subject to Discuss'}
               </span>
             </div>
@@ -286,7 +285,7 @@ export default function Cart() {
                 {submitting ? 'Processing...' : t('btn_place_order') + ' (৳' + grandTotal.toLocaleString() + ')'}
               </button>
 
-              {/* স্থায়ী রেড সতর্কবার্তা */}
+              {/* اختیاری রেড সতর্কবার্তা */}
               <div className="mt-4 flex gap-2 items-start text-[11px] text-red-600 font-extrabold leading-relaxed bg-red-50/50 p-3 rounded-lg border border-red-100/35">
                 <AlertTriangle className="shrink-0 text-red-600 mt-0.5" size={15} />
                 <p>আপনার অর্ডারটি সম্পন্ন করুন । সম্পন্ন হয়ে গেলে আমাদের একজন প্রতিনিধি আপনার সাথে যোগাযোগ করবেন।</p>
