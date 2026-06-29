@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useCart } from '../../context/CartContext';
 import { supabase } from '../../lib/supabase';
-import { Trash2, ShieldCheck, BadgeCheck, UserCheck, Lock } from 'lucide-react';
+import { Trash2, ShieldCheck, BadgeCheck, UserCheck, Lock, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { useSettings } from '../../context/SettingsContext';
 
@@ -21,6 +21,7 @@ export default function Cart() {
   const [createdOrderId, setCreatedOrderId] = useState(null);
 
   useEffect(() => {
+    // Check if customer is logged in
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         setUser(user);
@@ -36,8 +37,8 @@ export default function Cart() {
     return total + price * item.quantity;
   }, 0);
 
-  const deliveryCharge = subtotal > 0 ? 100 : 0; 
-  const grandTotal = subtotal + deliveryCharge;
+  // কাস্টম লজিক: ডেলিভারি চার্জ সম্পূর্ণ বাদ দিয়ে সর্বমোট মূল্য সাব-টোটালের সমান করা হয়েছে
+  const grandTotal = subtotal; 
 
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
@@ -49,6 +50,7 @@ export default function Cart() {
 
     setSubmitting(true);
     
+    // 1. Create order record
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
       .insert({
@@ -70,6 +72,7 @@ export default function Cart() {
       return;
     }
 
+    // 2. Create order items records
     const orderItemsToInsert = cart.map((item) => {
       const activePrice = item.discount_price && item.discount_price < item.price ? item.discount_price : item.price;
       return {
@@ -137,7 +140,8 @@ export default function Cart() {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 select-none">
+      {/* Cart Items List */}
       <div className="lg:col-span-2 space-y-4">
         <h2 className="text-xl font-bold text-brandDark">{t('cart_title')}</h2>
         <div className="space-y-4">
@@ -188,30 +192,26 @@ export default function Cart() {
         </div>
       </div>
 
+      {/* Checkout or Login Form Section */}
       <div className="space-y-6">
+        {/* Price Summary (ডেলিভারি চার্জ সেকশন সম্পূর্ণ বাদ দেওয়া হয়েছে) */}
         <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
           <h3 className="text-lg font-bold text-brandDark border-b pb-2">{t('order_summary')}</h3>
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between text-gray-500">
-              <span>{t('subtotal')}</span>
-              <span className="font-semibold text-brandDark">৳{subtotal.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between text-gray-500">
-              <span>{t('delivery')}</span>
-              <span className="font-semibold text-brandDark">৳{deliveryCharge.toLocaleString()}</span>
-            </div>
-            <div className="border-t pt-2 flex justify-between font-bold text-base text-brandDark">
+            <div className="flex justify-between font-bold text-base text-brandDark">
               <span>{t('total')}</span>
               <span className="text-brandBlue text-lg">৳{grandTotal.toLocaleString()}</span>
             </div>
           </div>
         </div>
 
+        {/* Dynamic Form Check */}
         {authLoading ? (
           <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm text-center py-10 font-bold text-gray-400">
             Loading...
           </div>
         ) : user ? (
+          /* Checkout Form for Logged In User */
           <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
             <div className="flex items-center gap-2 border-b pb-2 text-green-600">
               <UserCheck size={20} />
@@ -226,7 +226,7 @@ export default function Cart() {
                   placeholder="e.g. Karim"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brandBlue bg-gray-50"
+                  className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brandBlue bg-gray-50 text-gray-800"
                 />
               </div>
               <div>
@@ -237,7 +237,7 @@ export default function Cart() {
                   placeholder="e.g. 017XXXXXXXX"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brandBlue bg-gray-50"
+                  className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brandBlue bg-gray-50 text-gray-800"
                 />
               </div>
               <div>
@@ -257,7 +257,7 @@ export default function Cart() {
                   placeholder="Address..."
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brandBlue bg-gray-50"
+                  className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brandBlue bg-gray-50 text-gray-800"
                 />
               </div>
 
@@ -273,6 +273,12 @@ export default function Cart() {
               >
                 {submitting ? 'Processing...' : t('btn_place_order') + ' (৳' + grandTotal.toLocaleString() + ')'}
               </button>
+
+              {/* 🚨 নতুন সংযুক্ত স্থায়ী রেড সতর্কবার্তা (Warning Notice in Red Text with Alert Icon) */}
+              <div className="mt-4 flex gap-2 items-start text-[11px] text-red-600 font-extrabold leading-relaxed bg-red-50/50 p-3 rounded-lg border border-red-100/35">
+                <AlertTriangle className="shrink-0 text-red-600 mt-0.5" size={15} />
+                <p>আপনার অর্ডারটি সম্পন্ন করুন । সম্পন্ন হয়ে গেলে আমাদের একজন প্রতিনিধি আপনার সাথে যোগাযোগ করবেন।</p>
+              </div>
             </form>
           </div>
         ) : (
