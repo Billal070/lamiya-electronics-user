@@ -6,7 +6,6 @@ import { LogIn, UserPlus, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useSettings } from '../../context/SettingsContext';
 
 export default function Login() {
-  const { cart } = useCart || { cart: [] }; // Safe fallback
   const { t } = useSettings();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
