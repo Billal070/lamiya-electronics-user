@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useCart } from '../../context/CartContext';
 import { supabase } from '../../lib/supabase';
-import { Trash2, ShieldCheck, BadgeCheck, UserCheck, Lock, AlertTriangle } from 'lucide-react';
+import { Trash2, ShieldCheck, BadgeCheck, UserCheck, Lock, AlertTriangle, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import { useSettings } from '../../context/SettingsContext';
 
@@ -20,8 +20,8 @@ export default function Cart() {
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [createdOrderId, setCreatedOrderId] = useState(null);
 
-  // New States for Payment Information & Terms (নতুন পেমেন্ট ও শর্তাবলী স্টেট)
-  const [paymentMethod, setPaymentMethod] = useState('cod'); // 'cod' | 'online'
+  // New States for Payment Information & Terms
+  const [paymentMethod, setPaymentMethod] = useState('cod'); 
   const [agreeTerms, setAgreeTerms] = useState(false);
 
   useEffect(() => {
@@ -46,13 +46,11 @@ export default function Cart() {
     e.preventDefault();
     if (cart.length === 0 || !user) return;
     
-    // Safety check: Terms validation
     if (!agreeTerms) {
       alert(lang === 'bn' ? 'দয়া করে শর্তাবলীতে সম্মতি দিন।' : 'Please agree to the Terms & Conditions.');
       return;
     }
 
-    // Safety check: Payment method validation
     if (paymentMethod !== 'cod') {
       alert(lang === 'bn' ? 'অনলাইন পেমেন্ট বর্তমানে সাময়িকভাবে বন্ধ রয়েছে।' : 'Online Payment is temporarily offline.');
       return;
@@ -65,7 +63,6 @@ export default function Cart() {
 
     setSubmitting(true);
     
-    // 1. Create order record
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
       .insert({
@@ -87,7 +84,6 @@ export default function Cart() {
       return;
     }
 
-    // 2. Create order items records
     const orderItemsToInsert = cart.map((item) => {
       const activePrice = item.discount_price && item.discount_price < item.price ? item.discount_price : item.price;
       return {
@@ -207,19 +203,17 @@ export default function Cart() {
         </div>
       </div>
 
-      {/* Checkout or Login Form Section */}
+      {/* Checkout Form Section */}
       <div className="space-y-6">
         {/* Price Summary */}
         <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
           <h3 className="text-lg font-bold text-brandDark border-b pb-2">{t('order_summary')}</h3>
           <div className="space-y-3.5 text-sm">
-            {/* Subtotal Row */}
             <div className="flex justify-between text-gray-500 font-semibold">
               <span>{lang === 'bn' ? 'সাব-টোটাল:' : 'Subtotal:'}</span>
               <span className="text-brandDark">৳{subtotal.toLocaleString()}</span>
             </div>
 
-            {/* Dynamic Shipment Row */}
             <div className="flex justify-between text-gray-500 font-semibold border-b pb-3 border-dashed">
               <span>{lang === 'bn' ? 'ডেলিভারি চার্জ:' : 'Shipment:'}</span>
               <span className="text-brandBlue font-semibold text-xs md:text-sm">
@@ -227,7 +221,6 @@ export default function Cart() {
               </span>
             </div>
 
-            {/* Total Row */}
             <div className="pt-1 flex justify-between font-extrabold text-base text-brandDark">
               <span>{t('total')}</span>
               <span className="text-brandBlue text-lg">৳{grandTotal.toLocaleString()}</span>
@@ -241,7 +234,6 @@ export default function Cart() {
             Loading...
           </div>
         ) : user ? (
-          /* Checkout Form for Logged In User */
           <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-5">
             <div className="flex items-center gap-2 border-b pb-2 text-green-600">
               <UserCheck size={20} />
@@ -292,15 +284,17 @@ export default function Cart() {
               </div>
 
               {/* ======================================================== */}
-              {/* NEW PAYMENT INFORMATION SECTION (পেমেন্ট পদ্ধতি সেকশন) */}
+              {/* NEW PAYMENT INFORMATION SECTION (Symmetrical Styling) */}
               {/* ======================================================== */}
-              <div className="pt-4 border-t border-gray-100 space-y-3">
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                  {lang === 'bn' ? 'পেমেন্ট পদ্ধতি' : 'Payment Information'}
-                </h4>
+              <div className="pt-4 border-t border-gray-100 space-y-4">
+                <div className="flex items-center gap-2 border-b pb-2 text-brandBlue">
+                  <CreditCard size={20} />
+                  <h3 className="text-lg font-bold text-brandDark">
+                    {lang === 'bn' ? 'পেমেন্ট পদ্ধতি' : 'Payment Information'}
+                  </h3>
+                </div>
                 
                 <div className="space-y-2">
-                  {/* Option 1: Cash on Delivery */}
                   <label className="flex items-center gap-3 p-3 border rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
                     <input
                       type="radio"
@@ -315,7 +309,6 @@ export default function Cart() {
                     </span>
                   </label>
 
-                  {/* Option 2: Pay Online */}
                   <label className="flex items-center gap-3 p-3 border rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
                     <input
                       type="radio"
@@ -331,7 +324,6 @@ export default function Cart() {
                   </label>
                 </div>
 
-                {/* Pay Online offline Warning Notice (বাবল নোটিশ) */}
                 {paymentMethod === 'online' && (
                   <div className="bg-amber-50 border border-amber-200 p-3 rounded-xl flex gap-2 items-start text-xs text-amber-700 leading-relaxed animate-pulse">
                     <AlertTriangle className="shrink-0 text-amber-500 mt-0.5" size={16} />
@@ -345,7 +337,7 @@ export default function Cart() {
               </div>
 
               {/* ======================================================== */}
-              {/* NEW TERMS & CONDITIONS CHECKBOX (শর্তাবলী সম্মতি বক্স) */}
+              {/* TERMS & CONDITIONS CHECKBOX */}
               {/* ======================================================== */}
               <div className="pt-4 border-t border-gray-100">
                 <label className="flex items-start gap-2.5 cursor-pointer select-none">
@@ -367,10 +359,10 @@ export default function Cart() {
                       </span>
                     )}
                   </span>
-                </                label>
+                </label>
               </div>
 
-              {/* Submit Button (Disabled state and style customized) */}
+              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={submitting || !agreeTerms}
